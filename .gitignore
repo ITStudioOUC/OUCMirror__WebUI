@@ -1,0 +1,10 @@
+/素材/
+
+node_modules/
+dist/
+.local/
+.idea/
+*.tsbuildinfo
+.env
+.env.*
+!.env.example
