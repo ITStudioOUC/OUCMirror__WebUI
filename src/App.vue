@@ -257,7 +257,7 @@ onBeforeUnmount(() => {
       <img src="/assets/itstudio.png" alt="" width="3849" height="990" />
     </a>
     <a class="footer-affiliation footer-university" href="https://www.ouc.edu.cn/" target="_blank" rel="noopener noreferrer" :aria-label="t('common.university')">
-      <img src="/assets/ouc.png" alt="" width="4384" height="1106" />
+      <img src="/assets/it.png" alt="" width="4384" height="1106" />
     </a>
   </div>
   <footer class="site-footer">
