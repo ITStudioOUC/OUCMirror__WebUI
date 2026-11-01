@@ -73,7 +73,15 @@ HTTPS／rsync 使用 TCP 443／873 的 IPv4、IPv6 收发字节计数，双向�
 
 NFS I/O 来自 `/proc/self/mountstats` 的 `/data` 挂载，磁盘容量来自 statvfs；CPU、内存来自 `/proc`。采样历史仅覆盖采集器启用后的时间，不补造旧数据。图表最多展示 241 个采样点，均值、当前值、峰值从当前窗口全部原始有效采样计算。
 
-镜像文件由 Nginx 直接提供，API 不读取整个仓库；镜像目录响应设置 CSP sandbox 和 nosniff，避免仓库中的 HTML／脚本获得管理页面同源权限。
+目录 HTML、静态资源和文件下载全部由 Nginx 提供，Go 不参与目录遍历或文件传输。需要与当前 Nginx ABI 匹配的 Fancyindex 模块及内置 addition、sub_filter 模块；当前 Debian 13 使用 `apt-get install libnginx-mod-http-fancyindex`，安装后执行 `nginx -t`。自编译 Nginx 必须安装匹配模块，不要用包管理器覆盖现有二进制。主配置须加载模块（Debian 的 `/etc/nginx/modules-enabled/*.conf`）。
+
+`npm run build` 使用独立 Vite 入口 `directory.html`，随后生成 `dist/fancy-index/header.html`、`footer.html` 和 `labels.conf`。Fancyindex 内部子请求插入页头和页脚，`sub_filter` 用语言文件生成的文案替换四个原生英文标签。浏览器首次响应已经包含全部文件条目；无需 JavaScript、Go 或 JSON 即可导航和下载。JS 只增加搜索、每页 100 条、面包屑、主题、语言和一次可选的站点设置加载。无 JS 时默认中文，显示全部条目。目录 GET／HEAD 只读、目录优先、隐藏项省略，时间显示 UTC；表头的排序链接由 Fancyindex 在服务端处理。
+
+目录正则 location 的 `alias /data/mirrors/$mirror_directory` 与下载 location 的 `alias /data/mirrors/` 指向同一镜像树；符号链接遵循 Nginx 和文件系统访问规则，镜像树应仅包含可公开分发的内容。`/mirrors/` 重定向首页，因此仓库根目录的原生上级链接也会返回首页。目录仍需读取当前层文件元数据，不递归扫描；服务端 HTML 不会消除 NFS 元数据开销，大目录首访延迟仍需单独监测。
+
+文件响应继续设置 CSP sandbox 和 nosniff，避免仓库中的 HTML／脚本获得管理页面同源权限。目录 HTML 使用主站 CSP，两个模板子请求入口为 `internal`，不能直接访问。仓库中的 `index.html` 不会替代目录列表；显式访问它仍走文件下载 location，保留 sandbox、HEAD 和 Range。
+
+发布时同时更新整个 `dist/` 和 `nginx-preview.conf`，保证 `labels.conf` 在 `nginx -t` 时已经存在。执行检查后 reload Nginx；只有前端和目录变化时不必重启 Go 或 tunasync。旧 `/api/v1/directory/` 已移除，原 `MIRROROUC_MIRRORS` 环境变量不再使用。不重新初始化数据库或修改同步任务，原有 80 端口站点保持原配置。回退时同时恢复站点配置与发布目录软链接，并重新检查、reload。
 
 ## 备份与回退
 
@@ -88,6 +96,8 @@ NFS I/O 来自 `/proc/self/mountstats` 的 `/data` 挂载，磁盘容量来自 s
 `backend/*_test.go` 使用临时数据库与假的 Manager，覆盖鉴权、角色、CSRF、草稿隔离、并发冲突、任务提交、配置应用／恢复、上游不可用缓存、图片校验及监控统计。`test_config_helper.py` 独立验证写入白名单、自定义命令保留、注入拒绝与失败恢复，不操作真实同步配置。
 
 本次部署核验真实 API、镜像目录、日志、监控与后台草稿保存。没有为验证效果而停止、重启仓库，或应用修改后的生产同步参数。
+
+先运行 `npm run build && npm run check:directory`，再在安装 Fancyindex 的 Linux 上运行 `python3 deploy/test_nginx_directory.py`。测试使用临时文件与独立本地端口，Go 上游故意不可用，验证原始 HTML 包含条目、中英文标签模板、排序、特殊文件名转义、空／不存在目录、仓库 index.html、HEAD／Range、只读限制、内部模板隔离和路径边界；不停止真实服务或修改真实镜像目录。
 
 ## 统一中文内容升级
 

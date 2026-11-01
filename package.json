@@ -8,10 +8,11 @@
   },
   "scripts": {
     "dev": "vite --host 127.0.0.1",
-    "build": "vue-tsc -b && vite build",
+    "build": "vue-tsc -b && vite build && node scripts/build-directory.ts",
     "preview": "vite preview --host 127.0.0.1",
     "check:i18n": "node scripts/check-locales.ts",
-    "check:monitoring": "node scripts/check-monitoring.ts"
+    "check:monitoring": "node scripts/check-monitoring.ts",
+    "check:directory": "node scripts/check-directory.ts"
   },
   "dependencies": {
     "dompurify": "^3.4.17",

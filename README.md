@@ -20,6 +20,7 @@ npm run dev
 ```sh
 npm run check:i18n  # 检查中英文语言键与插值参数
 npm run check:monitoring  # 检查监控图表的数据夹具与资源总量约束
+npm run check:directory  # 构建后检查 Nginx 目录模板、翻译和资源
 npm run build       # TypeScript 检查与生产构建
 npm run preview     # 预览 dist 中的构建结果
 ```
@@ -40,6 +41,8 @@ Vue 3 + TypeScript + Vite，使用 vue-i18n 管理界面文案。当前首页支
 
 操作记录按时间倒序，每页 10 条；超过一页时显示分页控制，可查看全部历史记录。接口 `/api/v1/admin/audit?page=1` 返回当前页、总条数和总页数，未带 `page` 的旧版请求继续返回最近 200 条数组。
 
+`/mirrors/<name>/` 采用与 TUNA 同类的 Nginx Fancyindex 方案，服务端直接返回包含完整文件列表、页头和页脚的 HTML。禁用 JavaScript 也可浏览目录、按名称／大小／修改时间排序和下载文件，不再请求目录 JSON。JavaScript 仅增强面包屑、当前目录搜索、每页 100 项、主题和语言选择；另有一次可选的站点设置请求，用于应用后台配置的品牌和页脚内容，失败不影响文件浏览。目录优先排列，隐藏项不展示，时间明确使用 UTC；文件保留原 URL、HEAD 和 Range 支持。在仓库根目录返回上级会回到首页。模板和表头文案从语言文件生成，默认中文，增强脚本支持语言切换。
+
 ## 后端与部署
 
 后端使用 Go 标准库 HTTP、SQLite 和 TOML 解析器，不依赖数据库外部服务。详细部署、权限、备份和回退操作见 [deploy/README.md](deploy/README.md)。
@@ -59,11 +62,16 @@ go build -o mirrorouc .
 
 生产构建通过 `-static ../dist` 或 `MIRROROUC_STATIC` 指定静态目录；`MIRROROUC_WORKER_CONFIG`、`MIRROROUC_LOGS`、`MIRROROUC_METRICS` 分别指定 Worker 配置、日志根目录和采样历史。缺少配置时，对应管理功能会显示不可用，不会启动假的同步引擎。管理页复用站点的明暗主题和语言选择。
 
+镜像根目录通过 `deploy/nginx-preview.conf` 中两个 `alias /data/mirrors/` 配置。Go 不枚举镜像目录，也不代理文件内容。符号链接沿用 Nginx 和文件系统的访问规则，与镜像下载服务保持一致。
+
+本地开发时，在被忽略的 `.env.local` 中设置 `MIRROROUC_NGINX_ORIGIN=http://100.69.2.2:8080`，再运行 Vite。目录 HTML、下载和其构建资源代理到该 Nginx；其他管理 API 继续代理到本地 Go 的 8081 端口。目录模板修改后需重新构建并更新 Nginx 使用的 `dist/`。未设置时，Nginx 地址默认为 `http://127.0.0.1:8080`。
+
 当前服务器预览地址为 `http://100.69.2.2:8080`，管理入口 `/admin`，原有 80 端口下载服务保留。预览仅监听该 Tailnet 地址，正式域名与 HTTPS 尚未配置。
 
 ## 源码约定
 
 - `src/App.vue`：首页与弹窗交互。
+- `directory.html`、`src/directory/`、`scripts/build-directory.ts`：服务端目录的 HTML 模板、渐进增强与构建，产物位于 `dist/fancy-index/`。
 - `src/style.css`：爱特官网同款明暗配色、布局、动画和移动端样式；色值来源与映射见 [DESIGN.md](DESIGN.md)。
 - `src/locales/zh-CN/`、`src/locales/en-US/`：界面文案及数据夹具文案；新增文案通过语言键引用。
 - 各语言的 `mirrors.ts` 定义表头、状态、相对时间、容量与公告日期模板，`formats.ts` 定义日期和数字格式；组件通过 `t`、`d`、`n` 使用，不自行生成界面文案。

@@ -1,0 +1,58 @@
+<!doctype html>
+<html lang="zh-CN" data-theme="light">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="theme-color" content="#ffffff" />
+  <link rel="icon" type="image/png" href="/assets/ouc-seal.png" />
+  <title>{{directory.title}} · MirrorOUC</title>
+  <script src="/assets/directory-theme.js"></script>
+  <script type="module" src="/src/directory/main.ts"></script>
+</head>
+<body class="directory-page">
+  <a class="skip-link" href="#directory" data-i18n="directory.skip">{{directory.skip}}</a>
+  <header class="site-header">
+    <a href="/" class="brand" aria-label="{{common.siteName}}" data-i18n-aria="common.siteName"><span class="brand-logo"><img class="directory-logo" src="/assets/mirrorOUC_dark.png" alt="" width="2000" height="433" /></span></a>
+    <nav class="desktop-nav" aria-label="{{common.menu}}" data-i18n-aria="common.menu">{{navigation}}</nav>
+    <div class="header-tools">
+      <details class="language-picker enhanced-control">
+        <summary class="language-trigger" aria-label="{{common.language}}" data-i18n-aria="common.language"><span data-current-language>{{common.languageName}}</span></summary>
+        <div class="language-options">{{languages}}</div>
+      </details>
+      <span class="tool-divider enhanced-control"></span>
+      <details class="theme-picker enhanced-control">
+        <summary class="icon-button" aria-label="{{common.theme}}" data-i18n-aria="common.theme"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2m0 16v2M2 12h2m16 0h2M5 5l1.5 1.5m11 11L19 19M5 19l1.5-1.5m11-11L19 5"/></svg></summary>
+        <div class="theme-options">{{themes}}</div>
+      </details>
+      <details class="directory-mobile">
+        <summary class="icon-button" aria-label="{{common.menu}}" data-i18n-aria="common.menu"><svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h16"/></svg></summary>
+        <nav class="directory-mobile-nav">{{navigation}}</nav>
+      </details>
+    </div>
+  </header>
+  <main id="directory" class="page-width directory-main" tabindex="-1">
+    <div class="directory-controls">
+      <nav class="directory-breadcrumbs" aria-label="{{directory.breadcrumb}}" data-i18n-aria="directory.breadcrumb"><a href="/" data-i18n="directory.root">{{directory.root}}</a></nav>
+      <div class="directory-actions enhanced-control">
+        <input id="directory-search" type="search" placeholder="{{directory.search}}" aria-label="{{directory.search}}" data-i18n-placeholder="directory.search" data-i18n-aria="directory.search" autocomplete="off" />
+        <a class="directory-refresh" href="?" data-i18n="directory.refresh">{{directory.refresh}}</a>
+      </div>
+    </div>
+<!-- DIRECTORY_LIST -->
+    <p id="directory-empty" hidden data-i18n="directory.noResults">{{directory.noResults}}</p>
+    <nav class="directory-pagination enhanced-control" aria-label="{{directory.pagination}}" data-i18n-aria="directory.pagination" hidden>
+      <span id="directory-summary"></span>
+      <div><button id="directory-previous" data-i18n="directory.previous">{{directory.previous}}</button><span id="directory-page"></span><button id="directory-next" data-i18n="directory.next">{{directory.next}}</button></div>
+    </nav>
+  </main>
+  <div class="footer-affiliations">
+    <a class="footer-affiliation footer-studio" href="https://www.itouc.cn/" aria-label="{{common.studio}}" data-i18n-aria="common.studio"><img src="/assets/itstudio.png" alt="" width="3849" height="990" /></a>
+    <a class="footer-affiliation footer-university" href="https://www.ouc.edu.cn/" aria-label="{{common.university}}" data-i18n-aria="common.university"><img src="/assets/it.png" alt="" width="4384" height="1106" /></a>
+  </div>
+  <footer class="site-footer"><div class="page-width footer-main">
+    <div class="footer-identity"><a href="/" class="footer-brand" aria-label="{{common.siteName}}" data-i18n-aria="common.siteName"><img class="directory-logo" src="/assets/mirrorOUC_dark.png" alt="" width="2000" height="433" /></a><p id="directory-description" data-i18n="common.footer">{{common.footer}}</p></div>
+    <nav class="footer-links" aria-label="{{common.footerLinks}}" data-i18n-aria="common.footerLinks"><h2 data-i18n="common.footerLinks">{{common.footerLinks}}</h2><ul id="directory-footer-links"><li><a href="https://www.itouc.cn/" data-i18n="common.studio">{{common.studio}}</a></li><li><a href="https://www.ouc.edu.cn/" data-i18n="common.university">{{common.university}}</a></li></ul></nav>
+    <section class="footer-contact"><h2 data-i18n="common.footerContact">{{common.footerContact}}</h2><a id="directory-email" href="mailto:contact@itstudio.club">{{common.contactEmail}}</a><address id="directory-address" data-i18n="common.studioAddress">{{common.studioAddress}}</address></section>
+  </div></footer>
+</body>
+</html>

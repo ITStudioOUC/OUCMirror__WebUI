@@ -5,6 +5,13 @@ release=$(readlink -f "$1")
 case "$release" in /opt/mirrorouc/releases/*) ;; *) echo 'Invalid release path' >&2; exit 1;; esac
 test -x "$release/mirrorouc"
 test -f "$release/dist/index.html"
+test -f "$release/dist/fancy-index/header.html"
+test -f "$release/dist/fancy-index/footer.html"
+# The module must match the installed Nginx ABI; do not replace a custom build.
+if ! nginx -T 2>&1 | grep -q 'load_module.*ngx_http_fancyindex_module'; then
+    echo 'Install and enable a matching Nginx Fancyindex module first (Debian: apt-get install libnginx-mod-http-fancyindex).' >&2
+    exit 1
+fi
 deploy="$release/deploy"
 id mirrorouc >/dev/null 2>&1 || useradd --system --home-dir /var/lib/mirrorouc --shell /usr/sbin/nologin mirrorouc
 install -d -m 0700 -o mirrorouc -g mirrorouc /var/lib/mirrorouc
