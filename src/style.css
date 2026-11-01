@@ -1,6 +1,6 @@
 :root {
   --muted: var(--ink-2);
-  /* Palette from itouc.cn; source values and component mapping are in DESIGN.md. */
+  /* Palette from itouc.cn. */
   --blue: #0969da; --blue-bright: #58a6ff; --blue-soft: rgba(9, 105, 218, .08);
   --ink: #24292f; --ink-2: #343a40; --ink-3: var(--ink-2); --line: #d0d7de; --line-soft: #d8dee4;
   --paper: #fff; --surface: #f6f8fa; --panel: #fff; --panel-blue: var(--surface);
