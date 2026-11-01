@@ -156,7 +156,7 @@ h2 { margin: 0; font-size: 19px; font-weight: 600; letter-spacing: -.04em; }
 .footer-affiliations { display: flex; align-items: flex-end; gap: 21px; width: 411px; max-width: 100%; margin-left: auto; }
 .footer-affiliation { position: relative; display: block; min-width: 0; }
 .footer-studio { flex: 240; --affiliation-image: url('/assets/itstudio.png'); --wordmark-start: 26%; }
-.footer-university { flex: 280; --affiliation-image: url('/assets/it.png'); --wordmark-start: 25.3%; }
+.footer-university { flex: 280; --affiliation-image: url('/assets/ouc.png'); --wordmark-start: 25.3%; }
 .footer-affiliation img { display: block; width: 100%; height: auto; }
 /* Recolor the pale wordmarks on light backgrounds while keeping the symbols in their original colors. */
 .footer-affiliation::after { content: ''; position: absolute; inset: 0; background: linear-gradient(to right, transparent var(--wordmark-start), #004098 var(--wordmark-start)); mask: var(--affiliation-image) center / contain no-repeat; pointer-events: none; }
