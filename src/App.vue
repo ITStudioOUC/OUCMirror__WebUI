@@ -199,7 +199,7 @@ onBeforeUnmount(() => {
                 <td class="name-cell">
                   <div class="mirror-name-group">
                     <a class="mirror-name-button" :aria-label="t('mirrors.browse', { name: mirror.name })" :title="description(mirror)" :href="mirror.browseUrl">{{ mirror.name }}</a>
-                    <button class="help-button" :aria-label="t('mirrors.helpFor', { name: mirror.name })" :title="t('mirrors.helpFor', { name: mirror.name })" @click="openModal('mirror', mirror)"><BookOpen :size="14" /></button>
+                    <button v-if="mirror.help?.trim()" class="help-button" :aria-label="t('mirrors.helpFor', { name: mirror.name })" :title="t('mirrors.helpFor', { name: mirror.name })" @click="openModal('mirror', mirror)"><BookOpen :size="14" /></button>
                   </div>
                 </td>
                 <td class="time-cell" :title="fullTime(showNextSync ? mirror.nextSync : mirror.lastSuccess)"><RollingText :value="showNextSync ? tableNextTime(mirror) : relativeTime(mirror.lastSuccess)" :cycle="boardCycle" :candidates="timeCandidates" :reserve="[relativeTime(mirror.lastSuccess), tableNextTime(mirror)]" /></td>

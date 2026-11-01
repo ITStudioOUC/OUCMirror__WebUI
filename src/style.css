@@ -95,7 +95,7 @@ h2 { margin: 0; font-size: 19px; font-weight: 600; letter-spacing: -.04em; }
 .mirror-table tbody tr[data-status='syncing'] { background: var(--blue-soft); }
 .mirror-table tbody tr[data-status='failed'] { background: var(--red-soft); }
 .mirror-name-group { display: flex; align-items: center; gap: 8px; min-width: 0; }
-.mirror-name-button { min-width: 0; min-height: 36px; padding: 0; color: var(--blue); font: 600 14px ui-monospace, 'Cascadia Code', Consolas, monospace; text-align: left; overflow-wrap: anywhere; }
+.mirror-name-button { display: inline-flex; align-items: center; min-width: 0; min-height: 36px; padding: 0; color: var(--blue); font: 600 16px/1.5 ui-monospace, 'Cascadia Code', Consolas, monospace; text-align: left; overflow-wrap: anywhere; }
 .mirror-name-button:hover { text-decoration: underline; text-underline-offset: 3px; }
 .distro-mark { flex: 0 0 auto; display: inline-flex; align-items: center; justify-content: center; width: 31px; height: 31px; border: 1px solid color-mix(in srgb, var(--distro-color) 31%, var(--line)); border-radius: 7px; background: color-mix(in srgb, var(--distro-color) 10%, var(--panel)); color: var(--distro-color); font-family: ui-monospace, 'Cascadia Code', Consolas, monospace; font-size: 14px; font-weight: 500; }
 .status-chip { display: inline-flex; align-items: center; gap: 6px; min-width: 72px; color: var(--ink-2); font-size: 11px; white-space: nowrap; }
@@ -208,7 +208,7 @@ h2 { margin: 0; font-size: 19px; font-weight: 600; letter-spacing: -.04em; }
   .mirror-table td { height: 48px; padding: 5px 4px; font-size: 12px; }
   .mirror-table th:first-child { width: 44%; }
   .mirror-table th:nth-child(2), .mirror-table th:nth-child(3) { width: 28%; }
-  .mirror-name-button { min-height: 44px; font-size: 12px; }
+  .mirror-name-button { min-height: 44px; font-size: 14px; }
   .mirror-name-group .help-button { display: none; }
   .mirror-table .time-cell { line-height: 1.5; }
   .sidebar { display: flex; align-items: stretch; gap: 20px; }
