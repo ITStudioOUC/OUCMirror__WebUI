@@ -1,6 +1,7 @@
 export type MonitoringRange = 1 | 6 | 24
 export type MetricUnit = 'gigabits' | 'gigabytes' | 'operations' | 'percent' | 'memory'
-export interface MetricSeries { id: string; labelKey: string; color: string; values: number[]; stats?: { mean: number; latest: number; max: number } }
+export type MetricValue = number | null
+export interface MetricSeries { id: string; labelKey: string; color: string; values: MetricValue[]; stats?: { mean: number; latest: MetricValue; max: number } }
 export interface MonitoringPanel {
   id: string
   titleKey: string
@@ -12,6 +13,43 @@ export interface MonitoringPanel {
 }
 export interface MonitoringSnapshot { timestamps: number[]; panels: MonitoringPanel[] }
 export interface LiveMonitoringSnapshot extends MonitoringSnapshot { disks: { name: string; used: number; total: number }[]; updatedAt: number; stale: boolean }
+
+export function metricStatistics(values: MetricValue[]) {
+  const measured = values.filter((value): value is number => value !== null && Number.isFinite(value))
+  const latest = values.at(-1)
+  return {
+    mean: measured.reduce((sum, value) => sum + value, 0) / Math.max(1, measured.length),
+    latest: latest != null && Number.isFinite(latest) ? latest : null,
+    max: Math.max(0, ...measured),
+  }
+}
+
+// Missing measurements break both lines and fills; they are never plotted as zero.
+export function metricPaths(series: MetricSeries[], count: number, stacked: boolean, coordinate: (index: number, value: number) => string) {
+  let baseline: MetricValue[] = Array.from({ length: count }, () => 0)
+  return series.map(item => {
+    const base = baseline
+    const values = Array.from({ length: count }, (_, index) => {
+      const value = item.values[index]
+      if (value == null || !Number.isFinite(value) || (stacked && base[index] == null)) return null
+      return value + (stacked ? base[index]! : 0)
+    })
+    if (stacked) baseline = values
+    const segments: number[][] = []
+    let segment: number[] = []
+    for (let index = 0; index <= count; index++) {
+      if (index < count && values[index] != null) segment.push(index)
+      else if (segment.length) { segments.push(segment); segment = [] }
+    }
+    const lineFor = (indices: number[]) => indices.map((index, position) => `${position ? 'L' : 'M'}${coordinate(index, values[index]!)}`).join(' ')
+    return {
+      ...item,
+      line: segments.map(lineFor).join(' '),
+      area: segments.map(indices => `${lineFor(indices)} ${[...indices].reverse().map(index => `L${coordinate(index, stacked ? base[index]! : 0)}`).join(' ')} Z`).join(' '),
+      plottedValues: values,
+    }
+  })
+}
 
 export const demoDisks = [
   { name: '/srv/mirrors', used: 43.2, total: 64 },

@@ -1,6 +1,6 @@
 export default {
   speedCollecting: 'Sampling',
-  speedDescription: 'TCP receive rate across this mirror’s parallel upstream connections, sampled about every 2 seconds.',
+  speedDescription: 'TCP receive rate across this mirror’s parallel upstream connections, sampled about every 2 seconds. Scanning, verification or disk waits may produce zero while the sync job is still running.',
   speedUnits: { bytes: '{value} B/s', kilobytes: '{value} KB/s', megabytes: '{value} MB/s', gigabytes: '{value} GB/s' },
   live: 'Live monitoring',
   stale: 'Metrics collection interrupted',

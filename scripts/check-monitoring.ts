@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict'
-import { createMonitoringSnapshot, demoDisks, type MonitoringRange } from '../src/monitoring.ts'
+import { createMonitoringSnapshot, demoDisks, metricPaths, metricStatistics, type MetricSeries, type MonitoringRange } from '../src/monitoring.ts'
 
 const end = Date.parse('2026-11-01T16:00:00+08:00')
 for (const hours of [1, 6, 24] as MonitoringRange[]) {
@@ -12,7 +12,7 @@ for (const hours of [1, 6, 24] as MonitoringRange[]) {
   for (const panel of snapshot.panels) {
     for (const series of panel.series) {
       assert.equal(series.values.length, snapshot.timestamps.length)
-      assert.ok(series.values.every(value => Number.isFinite(value) && value >= 0 && value <= panel.maximum))
+      assert.ok(series.values.every(value => value !== null && Number.isFinite(value) && value >= 0 && value <= panel.maximum))
     }
     for (let index = 0; index < snapshot.timestamps.length; index++) {
       if (index) assert.ok(snapshot.timestamps[index]! > snapshot.timestamps[index - 1]!)
@@ -23,4 +23,15 @@ for (const hours of [1, 6, 24] as MonitoringRange[]) {
   }
 }
 for (const disk of demoDisks) assert.ok(disk.used >= 0 && disk.used <= disk.total)
-console.log('Monitoring check passed: deterministic windows, timestamps, valid samples, stack limits, CPU/memory totals and disk capacities.')
+const series = (id: string, values: MetricSeries['values']): MetricSeries => ({ id, values, labelKey: id, color: 'blue' })
+const lower = series('lower', [0, 2, null, 3, 4])
+const upper = series('upper', [1, 1, 1, 1, 1])
+const coordinate = (index: number, value: number) => `${index},${value}`
+const paths = metricPaths([lower, upper], 5, true, coordinate)
+assert.equal(paths[0]!.line, 'M0,0 L1,2 M3,3 L4,4', 'Missing data must break a line, preserving measured zero')
+assert.equal(paths[0]!.area, 'M0,0 L1,2 L1,0 L0,0 Z M3,3 L4,4 L4,0 L3,0 Z', 'Fills must not bridge gaps')
+assert.deepEqual(paths[1]!.plottedValues, [1, 3, null, 4, 5], 'Unknown stacked baselines must remain gaps')
+assert.deepEqual(metricPaths([upper], 5, true, coordinate)[0]!.plottedValues, upper.values, 'Hiding a lower series must rebuild the stack')
+assert.deepEqual(metricStatistics([null, 0, 4, null]), { mean: 2, latest: null, max: 4 }, 'Missing samples must not become zero or stale latest values')
+assert.deepEqual(metricStatistics([null, null]), { mean: 0, latest: null, max: 0 })
+console.log('Monitoring check passed: deterministic windows, statistics, missing samples, line/fill gaps, stack limits and disk capacities.')

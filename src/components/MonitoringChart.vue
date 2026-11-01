@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
-import type { MonitoringPanel } from '../monitoring'
+import { metricPaths, metricStatistics, type MonitoringPanel } from '../monitoring'
 
 const props = defineProps<{ panel: MonitoringPanel; timestamps: number[] }>()
 const { t, d, n } = useI18n({ useScope: 'global' })
@@ -19,7 +19,8 @@ const plotWidth = computed(() => Math.max(1, width.value - left - right))
 const plotHeight = computed(() => height.value - top - bottom)
 const x = (index: number) => left + index / Math.max(1, props.timestamps.length - 1) * plotWidth.value
 const y = (value: number) => top + (1 - value / props.panel.maximum) * plotHeight.value
-function format(value: number) {
+function format(value: number | null | undefined) {
+  if (value == null || !Number.isFinite(value)) return t('common.emptyValue')
   const unit = props.panel.unit
   if (value > 0 && value < 1 && (unit === 'gigabits' || unit === 'gigabytes')) {
     return t(`monitor.units.${unit === 'gigabits' ? 'megabits' : 'megabytes'}`, { value: n(value * 1000, 'size') })
@@ -32,22 +33,10 @@ const timeTicks = computed(() => {
   return Array.from({ length: count }, (_, i) => Math.round((props.timestamps.length - 1) * i / (count - 1)))
 })
 const visible = computed(() => props.panel.series.filter(series => !hidden.value.includes(series.id)))
-const paths = computed(() => {
-  let baseline = props.timestamps.map(() => 0)
-  return visible.value.map(series => {
-    const base = [...baseline]
-    const values = series.values.map((value, i) => value + (props.panel.stacked ? base[i]! : 0))
-    if (props.panel.stacked) baseline = values
-    const line = values.map((value, i) => `${i ? 'L' : 'M'}${x(i).toFixed(2)},${y(value).toFixed(2)}`).join(' ')
-    const floor = base.map((value, i) => `L${x(i).toFixed(2)},${y(props.panel.stacked ? value : 0).toFixed(2)}`).reverse().join(' ')
-    return { ...series, line, area: `${line} ${floor} Z`, plottedValues: values }
-  })
-})
+const paths = computed(() => metricPaths(visible.value, props.timestamps.length, props.panel.stacked, (index, value) => `${x(index).toFixed(2)},${y(value).toFixed(2)}`))
 const stats = computed(() => props.panel.series.map(series => ({
   ...series,
-  mean: series.values.reduce((sum, value) => sum + value, 0) / Math.max(1, series.values.length),
-  latest: series.values.at(-1) ?? 0,
-  max: Math.max(0, ...series.values),
+  ...metricStatistics(series.values),
   ...series.stats,
 })))
 const available = computed(() => props.panel.available !== false && props.timestamps.length > 1)
@@ -109,7 +98,7 @@ onBeforeUnmount(() => observer?.disconnect())
         </g>
         <g v-if="sampleIndex !== null" class="chart-cursor">
           <line :x1="x(sampleIndex)" :x2="x(sampleIndex)" :y1="top" :y2="height - bottom" />
-          <circle v-for="series in paths" :key="series.id" :cx="x(sampleIndex)" :cy="y(series.plottedValues[sampleIndex]!)" r="3" :fill="series.color" />
+          <template v-for="series in paths" :key="series.id"><circle v-if="series.plottedValues[sampleIndex] != null" :cx="x(sampleIndex)" :cy="y(series.plottedValues[sampleIndex]!)" r="3" :fill="series.color" /></template>
         </g>
       </svg>
       <div v-if="available && sampleIndex !== null" class="chart-tooltip" :style="{ left: tooltipLeft }" aria-hidden="true">

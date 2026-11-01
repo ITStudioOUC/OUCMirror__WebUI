@@ -1,6 +1,6 @@
 export default {
   speedCollecting: '采集中',
-  speedDescription: '约 2 秒采样窗口内，此仓库全部并行上游连接的 TCP 接收速率。',
+  speedDescription: '约 2 秒采样窗口内，此仓库全部并行上游连接的 TCP 接收速率。扫描、校验或等待磁盘时可能为 0，并不表示同步已停止。',
   speedUnits: { bytes: '{value} B/s', kilobytes: '{value} KB/s', megabytes: '{value} MB/s', gigabytes: '{value} GB/s' },
   live: '实时监控',
   stale: '数据采集暂时中断',

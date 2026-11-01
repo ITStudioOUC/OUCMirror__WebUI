@@ -16,15 +16,15 @@ type metricsHistory struct {
 	Samples     []map[string]float64 `json:"samples"`
 }
 type metricStats struct {
-	Mean   float64 `json:"mean"`
-	Latest float64 `json:"latest"`
-	Max    float64 `json:"max"`
+	Mean   float64  `json:"mean"`
+	Latest *float64 `json:"latest"`
+	Max    float64  `json:"max"`
 }
 type metricSeries struct {
 	ID       string      `json:"id"`
 	LabelKey string      `json:"labelKey"`
 	Color    string      `json:"color"`
-	Values   []float64   `json:"values"`
+	Values   []*float64  `json:"values"`
 	Stats    metricStats `json:"stats"`
 }
 type metricPanel struct {
@@ -91,33 +91,53 @@ func (a *App) monitoring(w http.ResponseWriter, r *http.Request) {
 		timestamps = append(timestamps, int64(samples[index]["time"]))
 	}
 	makeSeries := func(id, label, color string) metricSeries {
-		series := metricSeries{ID: id, LabelKey: "monitor.series." + label, Color: "var(--" + color + ")", Values: []float64{}}
+		series := metricSeries{ID: id, LabelKey: "monitor.series." + label, Color: "var(--" + color + ")", Values: []*float64{}}
 		count := 0
 		for _, sample := range samples {
 			if value, ok := sample[id]; ok {
 				series.Stats.Mean += value
 				series.Stats.Max = math.Max(value, series.Stats.Max)
-				series.Stats.Latest = value
 				count++
 			}
 		}
 		if count > 0 {
 			series.Stats.Mean /= float64(count)
 		}
+		if len(samples) > 0 {
+			if latest, ok := samples[len(samples)-1][id]; ok {
+				series.Stats.Latest = &latest
+			}
+		}
+		previousIndex := -1
 		for _, index := range indices {
-			series.Values = append(series.Values, samples[index][id])
+			var point *float64
+			complete := true
+			// Preserve gaps even when downsampling skips the original missing point.
+			for i := previousIndex + 1; i <= index; i++ {
+				if _, ok := samples[i][id]; !ok {
+					complete = false
+					break
+				}
+			}
+			if complete {
+				value := samples[index][id]
+				point = &value
+			}
+			series.Values = append(series.Values, point)
+			previousIndex = index
 		}
 		return series
 	}
 	panel := func(id, unit string, maximum float64, stacked bool, series ...metricSeries) metricPanel {
-		available := len(samples) > 1
+		completePoints := 0
 		peak := float64(0)
 		for _, sample := range samples {
 			sum := float64(0)
+			complete := true
 			for _, s := range series {
 				value, ok := sample[s.ID]
 				if !ok {
-					available = false
+					complete = false
 				}
 				if stacked {
 					sum += value
@@ -126,6 +146,9 @@ func (a *App) monitoring(w http.ResponseWriter, r *http.Request) {
 				}
 			}
 			peak = math.Max(peak, sum)
+			if complete {
+				completePoints++
+			}
 		}
 		if maximum == 0 {
 			maximum = niceMaximum(peak)
@@ -133,7 +156,7 @@ func (a *App) monitoring(w http.ResponseWriter, r *http.Request) {
 		if maximum <= 0 {
 			maximum = 1
 		}
-		return metricPanel{id, "monitor.charts." + id, unit, maximum, stacked, available, series}
+		return metricPanel{id, "monitor.charts." + id, unit, maximum, stacked, completePoints > 1, series}
 	}
 	panels := []metricPanel{
 		panel("ipv4", "gigabits", 0, true, makeSeries("https4", "https", "blue"), makeSeries("rsync4", "rsync", "violet")),
