@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed, nextTick, onBeforeUnmount, onMounted, reactive, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { api, ApiError, jsonBody, setSession, type AdminSession, type AdminUser, type AnnouncementContent, type AuditEntry, type ConfigVersion, type ContentRecord, type MirrorMetadata, type Overview, type SiteSettings, type SyncConfig, type SyncConfigMirror, type SyncJob } from '../api'
+import { api, ApiError, jsonBody, setSession, type AdminSession, type AdminUser, type AnnouncementContent, type AuditPage, type ConfigVersion, type ContentRecord, type MirrorMetadata, type Overview, type SiteSettings, type SyncConfig, type SyncConfigMirror, type SyncJob } from '../api'
 import { supportedLocales } from '../locales'
 import MarkdownContent from './MarkdownContent.vue'
 
@@ -20,7 +20,7 @@ const articles = ref<ContentRecord<AnnouncementContent>[]>([])
 const metadata = ref<ContentRecord<MirrorMetadata>[]>([])
 const settings = ref<ContentRecord<SiteSettings> | null>(null)
 const users = ref<AdminUser[]>([])
-const audit = ref<AuditEntry[]>([])
+const audit = ref<AuditPage>({ items: [], page: 1, pageSize: 10, total: 0, totalPages: 1 })
 const search = ref('')
 const jobs = computed(() => (overview.value?.jobs || []).filter(job => `${job.name} ${job.upstream}`.toLowerCase().includes(search.value.toLowerCase())).sort((a, b) => a.name.localeCompare(b.name, 'en')))
 const articlesEditor = ref<ContentRecord<AnnouncementContent> | null>(null)
@@ -62,6 +62,7 @@ async function run(action: () => Promise<void>) {
   } finally { busy.value = false }
 }
 async function loadOverview() { overview.value = await api<Overview>('/admin/overview') }
+async function loadAudit(page = 1) { audit.value = await api<AuditPage>(`/admin/audit?page=${page}`) }
 function moveRelatedLink(index: number, offset: number) {
   const links = settings.value?.data.relatedLinks
   const destination = index + offset
@@ -76,7 +77,7 @@ async function loadTab(value: string) {
   if (value === 'settings') settings.value = (await api<ContentRecord<SiteSettings>[]>('/admin/records/settings'))[0] || null
   if (value === 'config') { config.value = await api('/admin/config'); versions.value = await api('/admin/config/versions'); draft.value = null; selectedConfig.value = ''; mirrorConfig.value = null }
   if (value === 'users' && session.value?.role === 'admin') users.value = await api('/admin/users')
-  if (value === 'audit') audit.value = await api('/admin/audit')
+  if (value === 'audit') await loadAudit()
 }
 function changeTab(value: string) { void run(async () => { tab.value = value; await loadTab(value) }) }
 async function login() {
@@ -211,7 +212,17 @@ onBeforeUnmount(() => clearInterval(poll))
         <h3>{{ t('admin.changePassword') }}</h3><p>{{ t('admin.passwordHint') }}</p><form class="admin-form admin-login" @submit.prevent="run(changePassword)"><label>{{ t('admin.currentPassword') }}<input v-model="passwords.currentPassword" type="password" autocomplete="current-password" required /></label><label>{{ t('admin.newPassword') }}<input v-model="passwords.newPassword" type="password" autocomplete="new-password" minlength="12" maxlength="256" required /></label><label>{{ t('admin.confirmPassword') }}<input v-model="passwords.confirm" type="password" autocomplete="new-password" minlength="12" maxlength="256" required /></label><button class="primary" :disabled="busy">{{ t('admin.changePassword') }}</button></form>
         <template v-if="session.role === 'admin'"><h3>{{ t('admin.users') }}</h3><div class="admin-table-wrap"><table><thead><tr><th>{{ t('admin.username') }}</th><th>{{ t('admin.role') }}</th></tr></thead><tbody><tr v-for="user in users" :key="user.id"><td>{{ user.username }}</td><td>{{ t(`admin.${user.role}`) }}</td></tr></tbody></table></div><h3>{{ t('admin.newUser') }}</h3><form class="admin-form admin-login" @submit.prevent="run(createUser)"><label>{{ t('admin.username') }}<input v-model="newUser.username" autocomplete="off" pattern="[a-zA-Z0-9][a-zA-Z0-9_.+\-]*" required /></label><label>{{ t('admin.password') }}<input v-model="newUser.password" type="password" autocomplete="new-password" minlength="12" maxlength="256" required /></label><label>{{ t('admin.role') }}<select v-model="newUser.role"><option value="admin">{{ t('admin.admin') }}</option><option value="editor">{{ t('admin.editor') }}</option></select></label><button class="primary" :disabled="busy">{{ t('admin.newUser') }}</button></form></template>
       </template>
-      <div v-if="tab === 'audit'" class="admin-table-wrap"><table><thead><tr><th>{{ t('admin.time') }}</th><th>{{ t('admin.actor') }}</th><th>{{ t('admin.action') }}</th><th>{{ t('admin.target') }}</th><th>{{ t('admin.result') }}</th></tr></thead><tbody><tr v-for="entry in audit" :key="entry.id"><td>{{ date(entry.created) }}</td><td>{{ entry.username }}</td><td>{{ eventLabel(entry.action) }}</td><td class="file-name">{{ entry.target }}</td><td>{{ eventLabel(entry.result) }}</td></tr></tbody></table></div>
+      <template v-if="tab === 'audit'">
+        <div class="admin-table-wrap"><table id="admin-audit-table"><thead><tr><th>{{ t('admin.time') }}</th><th>{{ t('admin.actor') }}</th><th>{{ t('admin.action') }}</th><th>{{ t('admin.target') }}</th><th>{{ t('admin.result') }}</th></tr></thead><tbody><tr v-for="entry in audit.items" :key="entry.id"><td>{{ date(entry.created) }}</td><td>{{ entry.username }}</td><td>{{ eventLabel(entry.action) }}</td><td class="file-name">{{ entry.target }}</td><td>{{ eventLabel(entry.result) }}</td></tr></tbody></table><p v-if="!audit.items.length">{{ t('admin.empty') }}</p></div>
+        <nav v-if="audit.totalPages > 1" class="admin-pagination" :aria-label="t('admin.auditPagination')">
+          <span>{{ t('admin.auditTotal', { total: n(audit.total) }) }}</span>
+          <div class="admin-page-controls">
+            <button :disabled="busy || audit.page <= 1" aria-controls="admin-audit-table" @click="run(() => loadAudit(audit.page - 1))">{{ t('admin.previousPage') }}</button>
+            <span role="status" aria-live="polite">{{ t('admin.pagePosition', { page: n(audit.page), pages: n(audit.totalPages) }) }}</span>
+            <button :disabled="busy || audit.page >= audit.totalPages" aria-controls="admin-audit-table" @click="run(() => loadAudit(audit.page + 1))">{{ t('admin.nextPage') }}</button>
+          </div>
+        </nav>
+      </template>
     </template>
     <dialog ref="confirmDialog" class="admin-confirm" :aria-label="t('admin.confirm')" @close="confirmation = null"><p>{{ confirmation?.message }}</p><div class="admin-actions"><button @click="confirmDialog?.close()">{{ t('admin.cancel') }}</button><button class="primary" @click="confirmed">{{ t('admin.confirm') }}</button></div></dialog>
   </section>
@@ -234,6 +245,11 @@ textarea { resize: vertical; line-height: 1.7; } .check { flex-direction: row; a
 .admin-form > button { justify-self: start; } .admin-columns { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 18px; } .admin-array { display: flex; flex-wrap: wrap; gap: 12px; align-items: end; padding: 14px 0; border-bottom: 1px solid var(--line); } .admin-array label { flex: 1; min-width: 160px; }
 .admin-related-links > button { margin-top: 16px; } .admin-related-links .admin-actions { gap: 6px; }
 .admin-table-wrap { max-width: 100%; overflow: auto; margin: 20px 0; } table { width: 100%; border-collapse: collapse; font-size: 14px; } th, td { padding: 12px 10px; border-bottom: 1px solid var(--line); text-align: left; vertical-align: middle; } thead th { font-weight: 700; white-space: nowrap; } tbody th { font-weight: 500; }
+.admin-pagination, .admin-page-controls { display: flex; align-items: center; flex-wrap: wrap; gap: 12px; }
+.admin-pagination { justify-content: space-between; font-size: 14px; }
+.admin-page-controls { gap: 10px; font-variant-numeric: tabular-nums; }
+.admin-page-controls > span { text-align: center; }
+.admin-page-controls button:disabled { cursor: default; }
 tr[data-status='syncing'] { background: color-mix(in srgb, var(--blue) 16%,transparent); } tr[data-status='failed'] { background: #df4d4d1c; } .row-actions { gap: 6px; min-width: 260px; } .row-actions button { font-size: 12px; padding: 4px 8px; min-height: 32px; }
 .admin-summary { display: flex; flex-wrap: wrap; gap: 28px 50px; } dt { color: var(--muted); font-size: 14px; } dd { margin: 10px 0 0; font-size: 24px; overflow-wrap: anywhere; }
 .admin-editor { margin: 30px 0; padding: 24px; border: 1px solid var(--line); border-radius: 5px; } .admin-editor h3 { margin-top: 0; } .admin-search { max-width: 360px; }
@@ -241,6 +257,9 @@ tr[data-status='syncing'] { background: color-mix(in srgb, var(--blue) 16%,trans
 .image-field { display: grid; gap: 10px; align-content: start; } .image-field img { max-width: 230px; height: 65px; object-fit: contain; object-position: left; } .upload-label { font-size: 12px; } .upload-label input { font-size: 12px; }
 .admin-confirm { width: min(480px,calc(100% - 32px)); padding: 26px; border: 1px solid var(--line); border-radius: 6px; color: var(--ink); background: var(--panel); } .admin-confirm::backdrop { background: #0008; } .admin-confirm p { margin: 0 0 24px; line-height: 1.8; }
 @media(max-width:700px) {
+ .admin-pagination { align-items: start; gap: 12px; }
+ .admin-page-controls { width: 100%; justify-content: space-between; gap: 6px; }
+ .admin-page-controls button { min-height: 42px; padding: 7px 10px; }
  .jobs-table table, .jobs-table tbody { display: block; }
  .jobs-table thead { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0,0,0,0); }
  .jobs-table tr { display: grid; grid-template-columns: minmax(0,1fr) auto auto; gap: 12px; padding: 16px 10px; border-bottom: 1px solid var(--line); }

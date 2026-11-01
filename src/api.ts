@@ -17,6 +17,7 @@ export interface SyncConfigMirror { name: string; provider: string; upstream: st
 export interface SyncConfig { worker: string; baseHash: string; global: SyncNumbers; mirrors: SyncConfigMirror[]; canAdd: boolean }
 export interface ConfigVersion { id: string; files: Record<string, { before: string | null; after: string | null }> | null; baseHash: string; status: string; created: number; username: string }
 export interface AuditEntry { id: number; username: string; action: string; target: string; result: string; created: number }
+export interface AuditPage { items: AuditEntry[]; page: number; pageSize: number; total: number; totalPages: number }
 export interface AdminUser { id: number; username: string; role: string; created: number }
 
 let csrf = ''

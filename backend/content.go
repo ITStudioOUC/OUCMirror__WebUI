@@ -15,6 +15,7 @@ import (
 	"path/filepath"
 	"regexp"
 	"sort"
+	"strconv"
 	"strings"
 	"time"
 )
@@ -331,7 +332,33 @@ func (a *App) auditList(w http.ResponseWriter, r *http.Request) {
 	if _, ok := a.require(w, r, true); !ok {
 		return
 	}
-	rows, err := a.db.Query("SELECT id,username,action,target,result,created FROM audit ORDER BY id DESC LIMIT 200")
+	page, pageSize := 1, 10
+	paginated := r.URL.Query().Has("page")
+	if paginated {
+		var err error
+		page, err = strconv.Atoi(r.URL.Query().Get("page"))
+		if err != nil || page < 1 {
+			fail(w, 400, "INVALID_INPUT")
+			return
+		}
+	}
+	tx, err := a.db.BeginTx(r.Context(), nil)
+	if err != nil {
+		a.internal(w, err)
+		return
+	}
+	defer tx.Rollback()
+	total, totalPages, limit, offset := 0, 1, 200, 0
+	if paginated {
+		if err := tx.QueryRowContext(r.Context(), "SELECT COUNT(*) FROM audit").Scan(&total); err != nil {
+			a.internal(w, err)
+			return
+		}
+		totalPages = max(1, (total+pageSize-1)/pageSize)
+		page = min(page, totalPages)
+		limit, offset = pageSize, (page-1)*pageSize
+	}
+	rows, err := tx.QueryContext(r.Context(), "SELECT id,username,action,target,result,created FROM audit ORDER BY id DESC LIMIT ? OFFSET ?", limit, offset)
 	if err != nil {
 		a.internal(w, err)
 		return
@@ -347,6 +374,23 @@ func (a *App) auditList(w http.ResponseWriter, r *http.Request) {
 		}
 		out = append(out, map[string]any{"id": id, "username": username, "action": action, "target": target, "result": result, "created": created})
 	}
+	if err := rows.Err(); err != nil {
+		a.internal(w, err)
+		return
+	}
+	if err := rows.Close(); err != nil {
+		a.internal(w, err)
+		return
+	}
+	if err := tx.Commit(); err != nil {
+		a.internal(w, err)
+		return
+	}
+	if paginated {
+		respond(w, 200, map[string]any{"items": out, "page": page, "pageSize": pageSize, "total": total, "totalPages": totalPages})
+		return
+	}
+	// Keep the array response for already-open admin pages from older releases.
 	respond(w, 200, out)
 }
 func (a *App) users(w http.ResponseWriter, r *http.Request) {

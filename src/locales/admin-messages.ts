@@ -1,4 +1,5 @@
 const pairs = {
+  auditPagination: ['操作记录分页', 'Audit log pagination'], auditTotal: ['共 {total} 条记录', '{total} entries'], previousPage: ['上一页', 'Previous'], nextPage: ['下一页', 'Next'], pagePosition: ['第 {page} / {pages} 页', 'Page {page} of {pages}'],
   relatedLinks: ['首页相关链接', 'Home page related links'], linkType: ['链接类型', 'Link type'], urlLink: ['网址', 'URL'], helpLink: ['软件源使用帮助', 'Mirror usage guides'], linkEntry: ['相关链接 {index}', 'Related link {index}'], moveUp: ['上移', 'Move up'], moveDown: ['下移', 'Move down'],
   helpChinese: ['使用说明（中文，Markdown）', 'Usage guide (Chinese, Markdown)'], descriptionLanguage: ['介绍语言', 'Description language'],
   contentLanguage: ['内容语言', 'Content language'],
