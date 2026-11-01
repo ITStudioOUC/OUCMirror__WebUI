@@ -5,6 +5,7 @@ import { api, ApiError, jsonBody, setSession, type AdminSession, type AdminUser,
 import { supportedLocales } from '../locales'
 import { announcementUrl } from '../announcements'
 import MarkdownContent from './MarkdownContent.vue'
+import DownloadCatalogEditor from './DownloadCatalogEditor.vue'
 
 const { t, te, d, n } = useI18n({ useScope: 'global' })
 const session = ref<AdminSession | null>(null)
@@ -13,13 +14,14 @@ const busy = ref(false)
 const error = ref('')
 const notice = ref('')
 const tab = ref('overview')
-const tabs = ['overview', 'mirrors', 'announcements', 'config', 'settings', 'users', 'audit']
+const tabs = ['overview', 'mirrors', 'announcements', 'downloads', 'config', 'settings', 'users', 'audit']
 const allowedTabs = computed(() => session.value?.role === 'admin' ? tabs : ['announcements', 'users'])
 const credentials = reactive({ username: '', password: '' })
 const overview = ref<Overview | null>(null)
 const articles = ref<ContentRecord<AnnouncementContent>[]>([])
 const metadata = ref<ContentRecord<MirrorMetadata>[]>([])
 const settings = ref<ContentRecord<SiteSettings> | null>(null)
+const downloadEditor = ref<InstanceType<typeof DownloadCatalogEditor>>()
 const users = ref<AdminUser[]>([])
 const audit = ref<AuditPage>({ items: [], page: 1, pageSize: 10, total: 0, totalPages: 1 })
 const search = ref('')
@@ -80,7 +82,7 @@ async function loadTab(value: string) {
   if (value === 'overview' || value === 'mirrors') await loadOverview()
   if (value === 'mirrors') metadata.value = await api('/admin/records/mirrors')
   if (value === 'announcements') articles.value = await api('/admin/records/announcements')
-  if (value === 'settings') settings.value = (await api<ContentRecord<SiteSettings>[]>('/admin/records/settings'))[0] || null
+  if (value === 'settings' || value === 'downloads') settings.value = (await api<ContentRecord<SiteSettings>[]>('/admin/records/settings'))[0] || null
   if (value === 'config') { config.value = await api('/admin/config'); versions.value = await api('/admin/config/versions'); draft.value = null; selectedConfig.value = ''; mirrorConfig.value = null }
   if (value === 'users' && session.value?.role === 'admin') users.value = await api('/admin/users')
   if (value === 'audit') await loadAudit()
@@ -139,6 +141,11 @@ function editMirror(job: SyncJob) {
   mirrorEditor.value.data.description ||= {}; mirrorEditor.value.data.help ||= ''
 }
 async function saveMirror() { if (!mirrorEditor.value) return; mirrorEditor.value = await saveRecord('mirrors', mirrorEditor.value); metadata.value = await api('/admin/records/mirrors') }
+async function saveDownloads() {
+  if (!settings.value) return
+  if (!downloadEditor.value?.validate()) { error.value = t('admin.incompleteDownload'); return }
+  settings.value = await saveRecord('settings', settings.value)
+}
 function command(job: SyncJob, action: string) {
   void ask(t('admin.commandConfirm', { name: job.name, action: t(`admin.${action}`) }), async () => {
     await api(`/admin/jobs/${encodeURIComponent(job.name)}/${action}`, { method: 'POST' }); notice.value = t('admin.submitted'); await loadOverview()
@@ -219,6 +226,7 @@ onBeforeUnmount(() => clearInterval(poll))
         </form>
         <div class="admin-table-wrap articles-table"><table><thead><tr><th>{{ t('admin.articleTitle') }}</th><th>{{ t('admin.status') }}</th><th>{{ t('admin.date') }}</th><th>{{ t('admin.actions') }}</th></tr></thead><tbody><tr v-for="row in sortedArticles" :key="row.id"><td class="article-list-title"><span lang="zh-CN">{{ row.data.title }}</span><span v-if="row.data.pinned" class="article-pin">{{ t('admin.pinned') }}</span></td><td>{{ t(row.data.published ? 'admin.published' : 'admin.draft') }}</td><td><time :datetime="row.data.date">{{ d(new Date(row.data.date), 'article') }}</time></td><td><div class="row-actions"><button :disabled="busy" @click="editArticle(row)">{{ t('admin.edit') }}</button><a v-if="row.data.published" class="admin-public-link" :href="announcementUrl(row.id)" target="_blank" rel="noopener noreferrer">{{ t('admin.viewArticle') }}</a><button :disabled="busy" @click="deleteArticle(row)">{{ t('admin.remove') }}</button></div></td></tr></tbody></table><p v-if="!articles.length">{{ t('admin.empty') }}</p></div>
       </template>
+      <form v-if="tab === 'downloads' && settings" class="admin-form download-admin-form" @submit.prevent="run(saveDownloads)"><DownloadCatalogEditor ref="downloadEditor" v-model="settings.data.downloads" :busy="busy" /><button type="submit" class="primary" :disabled="busy">{{ t('admin.saveDownloads') }}</button></form>
       <form v-if="tab === 'settings' && settings" class="admin-form" @submit.prevent="run(async () => { settings = await saveRecord('settings', settings!) })">
         <label>{{ t('admin.contentLanguage') }}<select v-model="editLocale"><option v-for="language in supportedLocales" :key="language" :value="language">{{ t('common.languageName', {}, { locale: language }) }}</option></select></label>
         <label v-for="field in localizedFields" :key="field">{{ t(field === 'name' ? 'admin.siteName' : `admin.${field}`) }}<textarea v-model="settings.data[field][editLocale]" rows="2" /></label>
@@ -235,7 +243,7 @@ onBeforeUnmount(() => clearInterval(poll))
           <button type="button" @click="settings.data.relatedLinks.push({ title: { 'zh-CN': '', 'en-US': '' }, kind: 'url', url: '' })">{{ t('admin.add') }}</button>
         </section>
         <h3>{{ t('admin.links') }}</h3><div v-for="(link, index) in settings.data.links" :key="index" class="admin-array"><label>{{ t('admin.articleTitle') }}<input v-model="link.title[editLocale]" /></label><label>{{ t('admin.url') }}<input v-model="link.url" type="url" required /></label><button type="button" @click="settings.data.links.splice(index,1)">{{ t('admin.remove') }}</button></div><button type="button" @click="settings.data.links.push({ title: { 'zh-CN': '', 'en-US': '' }, url: '' })">{{ t('admin.add') }}</button>
-        <h3>{{ t('admin.downloads') }}</h3><div v-for="(download,index) in settings.data.downloads" :key="index" class="admin-array"><label>{{ t('admin.name') }}<input v-model="download.name" required /></label><label>{{ t('admin.version') }}<input v-model="download.version" /></label><label>{{ t('admin.url') }}<input v-model="download.url" type="url" required /></label><button type="button" @click="settings.data.downloads.splice(index,1)">{{ t('admin.remove') }}</button></div><button type="button" @click="settings.data.downloads.push({ name: '', version: '', url: '' })">{{ t('admin.add') }}</button><button class="primary" :disabled="busy">{{ t('admin.save') }}</button>
+        <button class="primary" :disabled="busy">{{ t('admin.save') }}</button>
       </form>
       <template v-if="tab === 'config' && config">
         <p>{{ t('admin.intervalHint') }}</p><form class="admin-form" @submit.prevent="run(previewConfig)"><label>{{ t('admin.config') }}<select v-model="configScope" @change="draft = null"><option value="global">{{ t('admin.global') }}</option><option value="mirror">{{ t('admin.mirrorConfig') }}</option></select></label>
@@ -277,6 +285,7 @@ button:hover { border-color: var(--blue); color: var(--blue); } button:disabled 
 .admin-tabs button { flex-shrink: 0; border-color: transparent; background: transparent; } .admin-tabs [aria-current] { border-bottom: 2px solid var(--blue); color: var(--blue); border-radius: 0; font-weight: 700; }
 .admin-error, .admin-notice { padding: 12px 16px; border-left: 3px solid var(--blue); background: var(--panel); overflow-wrap: anywhere; } .admin-error { border-color: #d65252; }
 .admin-form { display: grid; gap: 18px; max-width: 1100px; } .admin-login { max-width: 420px; }
+.download-admin-form { max-width: none; }
 label { display: flex; flex-direction: column; gap: 8px; min-width: 0; font-size: 14px; font-weight: 500; }
 input, textarea, select { width: 100%; min-width: 0; min-height: 40px; padding: 9px 11px; border: 1px solid var(--line); border-radius: 4px; background: var(--panel); color: var(--ink); font: inherit; }
 textarea { resize: vertical; line-height: 1.7; } .check { flex-direction: row; align-items: center; gap: 8px; } .check input { width: 18px; min-height: 18px; accent-color: var(--blue); }

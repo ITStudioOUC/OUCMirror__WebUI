@@ -13,9 +13,18 @@ type RelatedLink struct {
 	URL   string    `json:"url"`
 }
 type Download struct {
-	Name    string `json:"name"`
-	Version string `json:"version"`
-	URL     string `json:"url"`
+	ID          string         `json:"id"`
+	Name        string         `json:"name"`
+	Category    string         `json:"category"`
+	Description string         `json:"description"`
+	Files       []DownloadFile `json:"files"`
+	// Read old settings and submissions without losing existing download links.
+	Version string `json:"version,omitempty"`
+	URL     string `json:"url,omitempty"`
+}
+type DownloadFile struct {
+	Label string `json:"label"`
+	URL   string `json:"url"`
 }
 type Settings struct {
 	Name         Localized     `json:"name"`
@@ -121,6 +130,10 @@ func settingsDefaults(data any) any {
 	if object, ok := data.(map[string]any); ok {
 		if value, exists := object["relatedLinks"]; !exists || value == nil {
 			object["relatedLinks"] = initialRelatedLinks()
+		}
+		var downloads []Download
+		if decodeData(object["downloads"], &downloads) == nil {
+			object["downloads"] = normalizeDownloads(downloads)
 		}
 	}
 	return data

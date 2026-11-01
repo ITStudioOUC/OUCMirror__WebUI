@@ -12,6 +12,7 @@ import StatusPage from './components/StatusPage.vue'
 import AdminPage from './components/AdminPage.vue'
 import AnnouncementsPage from './components/AnnouncementsPage.vue'
 import MarkdownContent from './components/MarkdownContent.vue'
+import DownloadList from './components/DownloadList.vue'
 import { content } from './api'
 import { announcementUrl } from './announcements'
 import { usePublicData } from './usePublicData'
@@ -277,12 +278,12 @@ onBeforeUnmount(() => {
     </div>
   </footer>
 
-  <dialog id="content-dialog" ref="dialog" class="content-dialog" aria-labelledby="dialog-title" @close="onDialogClose" @click="($event.target === $event.currentTarget) && closeModal()">
+  <dialog id="content-dialog" ref="dialog" class="content-dialog" :class="{ 'download-dialog': modal === 'downloads' }" aria-labelledby="dialog-title" @close="onDialogClose" @click="($event.target === $event.currentTarget) && closeModal()">
     <div class="dialog-inner"><div class="dialog-heading"><h2 id="dialog-title">{{ modalTitle }}</h2><button class="icon-button" :aria-label="t('common.close')" autofocus @click="closeModal"><X :size="21" /></button></div>
       <div class="dialog-content">
         <template v-if="modal === 'mirror' && selectedMirror"><p class="dialog-lead">{{ description(selectedMirror) }}</p><div class="mirror-facts"><span>{{ t('mirrors.columns.status') }}</span><span>{{ t(`mirrors.status.${selectedMirror.status}`) }}</span><span>{{ t('mirrors.columns.updated') }}</span><span>{{ relativeTime(selectedMirror.lastSuccess) }}</span><span>{{ t('mirrors.columns.next') }}</span><span>{{ nextLabel(selectedMirror) }}</span></div><MarkdownContent v-if="selectedMirror.help" :source="selectedMirror.help" lang="zh-CN" /><p v-else class="dialog-hint">{{ t('common.noHelp') }}</p><div class="dialog-actions"><a class="text-button" :href="selectedMirror.browseUrl">{{ t('common.openDirectory') }}<ArrowRight :size="15" /></a><a v-if="selectedMirror.website" :href="selectedMirror.website" target="_blank" rel="noopener noreferrer" class="text-button">{{ t('mirrors.official') }}<ExternalLink :size="14" /></a></div></template>
         <template v-else-if="modal === 'help'"><p class="dialog-lead">{{ t('mirrors.helpIntro') }}</p><div class="help-grid"><button v-for="mirror in mirrors" :key="mirror.name" @click="openModal('mirror', mirror)"><span class="distro-mark" :style="{ '--distro-color': mirror.color }" aria-hidden="true">{{ mirror.mark }}</span><span>{{ mirror.name }}</span><ArrowRight :size="15" /></button></div></template>
-        <template v-else-if="modal === 'downloads'"><p class="dialog-lead">{{ t('announcements.downloadsIntro') }}</p><p v-if="!distributions.length" class="dialog-hint">{{ t('common.noDownloads') }}</p><div class="modal-downloads"><a v-for="distro in distributions" :key="distro.name" :href="distro.url" target="_blank" rel="noopener noreferrer"><span>{{ distro.name }} {{ distro.version }}</span><ArrowUpRight :size="18" /></a></div></template>
+        <DownloadList v-else-if="modal === 'downloads'" :items="distributions" />
         <template v-else-if="modal === 'about'"><img class="about-seal" :src="site?.avatar || '/assets/ouc-seal.png'" alt="" width="80" height="80" /><p class="article-body">{{ t('common.aboutBody') }}</p><div class="about-links"><a href="https://www.itouc.cn/" target="_blank" rel="noopener noreferrer">{{ t('common.studio') }}<ArrowUpRight :size="15" /></a><a href="https://github.com/tuna/tunasync" target="_blank" rel="noopener noreferrer">{{ t('common.source') }} · tunasync<ArrowUpRight :size="15" /></a></div></template>
       </div>
     </div>

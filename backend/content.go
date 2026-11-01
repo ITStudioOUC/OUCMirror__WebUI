@@ -170,11 +170,19 @@ func (a *App) putRecord(w http.ResponseWriter, r *http.Request) {
 				return
 			}
 		}
-		for _, download := range d.Downloads {
-			if strings.TrimSpace(download.Name) == "" || len(download.Name) > 100 || len(download.Version) > 100 || !webURL(download.URL, false) {
-				fail(w, 400, "INVALID_INPUT")
+		if _, provided := fields["downloads"]; !provided {
+			current, err := a.record("settings", "site")
+			var existing Settings
+			if err != nil || decodeData(current.Data, &existing) != nil {
+				fail(w, 409, "CONFLICT")
 				return
 			}
+			d.Downloads = existing.Downloads
+		}
+		d.Downloads = normalizeDownloads(d.Downloads)
+		if !validDownloads(d.Downloads) {
+			fail(w, 400, "INVALID_INPUT")
+			return
 		}
 		value = d
 	}

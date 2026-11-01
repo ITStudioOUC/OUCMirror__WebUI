@@ -13,8 +13,13 @@ export default {
   "linkUniversity": "Ocean University of China",
   "pinned": "Pinned",
   "newsIntro": "These announcements describe the interface preview.",
-  "downloadsTitle": "Get installation images",
-  "downloadsIntro": "Local download directories are not connected yet. These links open official project websites.",
+  "downloadsTitle": "Downloads",
+  "chooseSoftware": "Choose software",
+  "downloadLinks": "Download links",
+  "downloadName": "Name",
+  "downloadVersion": "Version",
+  "downloadAction": "Download",
+  "downloadItem": "Download {name} {version}",
   "entries": {
     "preview": {
       "title": "A first look at the MirrorOUC interface",

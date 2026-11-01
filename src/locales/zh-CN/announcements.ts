@@ -13,8 +13,13 @@ export default {
   "linkUniversity": "中国海洋大学",
   "pinned": "置顶",
   "newsIntro": "以下为界面预览公告。",
-  "downloadsTitle": "获取安装镜像",
-  "downloadsIntro": "原型暂未接入本站下载目录，以下链接前往各项目官方网站。",
+  "downloadsTitle": "常用下载",
+  "chooseSoftware": "选择软件",
+  "downloadLinks": "下载链接",
+  "downloadName": "名称",
+  "downloadVersion": "版本",
+  "downloadAction": "下载",
+  "downloadItem": "下载 {name} {version}",
   "entries": {
     "preview": {
       "title": "MirrorOUC 首页界面预览",
