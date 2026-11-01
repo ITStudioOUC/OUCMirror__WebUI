@@ -10,14 +10,16 @@ import RollingText from './components/RollingText.vue'
 import LanguagePicker from './components/LanguagePicker.vue'
 import StatusPage from './components/StatusPage.vue'
 import AdminPage from './components/AdminPage.vue'
+import AnnouncementsPage from './components/AnnouncementsPage.vue'
 import MarkdownContent from './components/MarkdownContent.vue'
 import { content } from './api'
+import { announcementUrl } from './announcements'
 import { usePublicData } from './usePublicData'
 import { useMirrorFormats } from './useMirrorFormats'
 import { type Mirror } from './data'
 import { datetimeFormats, readPreference, savePreference, type Locale } from './locales'
 
-const { t, d, locale } = useI18n()
+const { t, locale } = useI18n()
 const isAdminPage = window.location.pathname.startsWith('/admin')
 const { site, mirrors, announcements: articleRecords, source, loading } = usePublicData()
 const announcements = computed(() => articleRecords.value.map(row => ({ id: row.id, ...row.data })))
@@ -38,9 +40,10 @@ const themeRoot = ref<HTMLElement>()
 const themes: Theme[] = ['light', 'dark', 'system']
 const themeIcons = { light: Sun, dark: Moon, system: Monitor }
 const isStatusPage = window.location.pathname.replace(/\/$/, '') === '/status'
+const isAnnouncementsPage = window.location.pathname.replace(/\/$/, '') === '/announcements'
 const navigation = [
-  { key: 'mirrors', href: '/', active: !isStatusPage && !isAdminPage },
-  { key: 'news', href: 'https://www.itouc.cn/announcements/', active: false },
+  { key: 'mirrors', href: '/', active: !isStatusPage && !isAdminPage && !isAnnouncementsPage },
+  { key: 'news', href: '/announcements', active: isAnnouncementsPage },
   { key: 'status', href: '/status', active: isStatusPage },
   { key: 'feedback', href: 'https://git.itouc.cn/ITStudio_OUC/OUCMirror-WebUI/issues', active: false },
 ]
@@ -55,7 +58,10 @@ watch(locale, (value) => {
   document.title = t('common.pageTitle')
   savePreference('mirrorouc.locale', value)
 }, { immediate: true })
-watch([locale, site], () => { document.title = site.value ? `MirrorOUC · ${content(site.value.name, locale.value)}` : t('common.pageTitle') })
+watch([locale, site], () => {
+  const siteTitle = site.value ? `MirrorOUC · ${content(site.value.name, locale.value)}` : t('common.pageTitle')
+  document.title = isAnnouncementsPage ? `${t('announcements.title')} · ${siteTitle}` : siteTitle
+}, { immediate: true })
 function selectTheme(value: Theme) { theme.value = value; themeOpen.value = false }
 
 const search = ref('')
@@ -86,22 +92,18 @@ function nextLabel(mirror: Mirror) {
 }
 function resetSearch() { search.value = ''; searchInput.value?.focus() }
 
-type Modal = 'help' | 'news' | 'about' | 'downloads' | 'mirror'
+type Modal = 'help' | 'about' | 'downloads' | 'mirror'
 const dialog = ref<HTMLDialogElement>()
 const modal = ref<Modal | null>(null)
 const selectedMirror = ref<Mirror | null>(null)
-const selectedNews = ref<string | null>(null)
-const activeNews = computed(() => announcements.value.find(item => item.id === selectedNews.value))
 const modalTitle = computed(() => {
   if (modal.value === 'mirror') return selectedMirror.value?.name || ''
-  if (modal.value === 'news' && activeNews.value) return activeNews.value.title
-  const keys = { help: 'mirrors.helpTitle', news: 'announcements.title', about: 'common.aboutTitle', downloads: 'announcements.downloadsTitle' }
+  const keys = { help: 'mirrors.helpTitle', about: 'common.aboutTitle', downloads: 'announcements.downloadsTitle' }
   return modal.value && modal.value in keys ? t(keys[modal.value as keyof typeof keys]) : ''
 })
-async function openModal(value: Modal, mirror?: Mirror, news?: string) {
+async function openModal(value: Modal, mirror?: Mirror) {
   modal.value = value
   selectedMirror.value = mirror || null
-  selectedNews.value = news || null
   mobileOpen.value = false
   themeOpen.value = false
   await nextTick()
@@ -114,7 +116,7 @@ watch(modal, value => { document.body.classList.toggle('dialog-open', value !== 
 function onKeydown(event: KeyboardEvent) {
   if (event.key === 'Escape') { themeOpen.value = false; mobileOpen.value = false }
   const target = event.target as HTMLElement
-  if (!dialog.value?.open && ((event.key === 'k' && (event.ctrlKey || event.metaKey))
+  if (!isAdminPage && !isAnnouncementsPage && !dialog.value?.open && ((event.key === 'k' && (event.ctrlKey || event.metaKey))
     || (event.key === '/' && !['INPUT', 'TEXTAREA', 'SELECT'].includes(target.tagName) && !target.isContentEditable))) {
     event.preventDefault()
     if (isStatusPage) statusPage.value?.focusSearch()
@@ -152,7 +154,7 @@ onBeforeUnmount(() => {
 </script>
 
 <template>
-  <a class="skip-link" :href="isAdminPage ? '#administration' : isStatusPage ? '#site-status' : '#mirrors'">{{ t(isAdminPage ? 'common.skipAdmin' : isStatusPage ? 'common.skipStatus' : 'common.skip') }}</a>
+  <a class="skip-link" :href="isAdminPage ? '#administration' : isStatusPage ? '#site-status' : isAnnouncementsPage ? '#announcements' : '#mirrors'">{{ t(isAdminPage ? 'common.skipAdmin' : isStatusPage ? 'common.skipStatus' : isAnnouncementsPage ? 'common.skipAnnouncements' : 'common.skip') }}</a>
   <header class="site-header">
       <a href="/" class="brand" :aria-label="content(site?.name, locale) || t('common.siteName')">
         <span class="brand-logo"><img :src="brandLogo" alt="" width="2000" height="433" /></span>
@@ -177,8 +179,9 @@ onBeforeUnmount(() => {
   </header>
 
   <main class="page-width">
-    <p v-if="!isAdminPage && (loading || source.stale)" class="data-notice" role="status">{{ t(loading ? 'common.loading' : source.updatedAt ? 'common.stale' : 'common.unavailable') }}</p>
+    <p v-if="!isAdminPage && !isAnnouncementsPage && (loading || source.stale)" class="data-notice" role="status">{{ t(loading ? 'common.loading' : source.updatedAt ? 'common.stale' : 'common.unavailable') }}</p>
     <AdminPage v-if="isAdminPage" />
+    <AnnouncementsPage v-else-if="isAnnouncementsPage" />
     <StatusPage v-else-if="isStatusPage" ref="statusPage" :mirrors="mirrors" :now="now" :cycle="boardCycle" :show-next-sync="showNextSync" @mirror="openModal('mirror', $event)" />
     <div v-else class="main-grid">
       <section id="mirrors" class="mirror-section" tabindex="-1">
@@ -213,11 +216,11 @@ onBeforeUnmount(() => {
 
       <aside class="sidebar">
         <section class="side-section announcements">
-          <div class="side-heading"><h2>{{ t('announcements.title') }}</h2><button class="sidebar-more" :aria-label="t('announcements.more')" @click="openModal('news')">{{ t('announcements.moreLabel') }}</button></div>
-          <button v-for="item in announcements" :key="item.id" class="news-item" :title="item.title" :aria-label="`${announcementDate(item.date)} ${item.title}`" @click="openModal('news', undefined, item.id)">
+          <div class="side-heading"><h2>{{ t('announcements.title') }}</h2><a class="sidebar-more" href="/announcements" :aria-label="t('announcements.more')">{{ t('announcements.moreLabel') }}</a></div>
+          <a v-for="item in announcements" :key="item.id" class="news-item" :href="announcementUrl(item.id)" :title="item.title" :aria-label="`${announcementDate(item.date)} ${item.title}`">
             <time :datetime="item.date">{{ announcementDate(item.date) }}</time>
             <span class="news-title" lang="zh-CN">{{ item.title }}</span>
-          </button>
+          </a>
           <p v-if="!announcements.length" class="dialog-hint">{{ t('common.noAnnouncements') }}</p>
         </section>
 
@@ -275,11 +278,10 @@ onBeforeUnmount(() => {
   </footer>
 
   <dialog id="content-dialog" ref="dialog" class="content-dialog" aria-labelledby="dialog-title" @close="onDialogClose" @click="($event.target === $event.currentTarget) && closeModal()">
-    <div class="dialog-inner"><div class="dialog-heading"><h2 id="dialog-title" :lang="modal === 'news' && activeNews ? 'zh-CN' : undefined">{{ modalTitle }}</h2><button class="icon-button" :aria-label="t('common.close')" autofocus @click="closeModal"><X :size="21" /></button></div>
+    <div class="dialog-inner"><div class="dialog-heading"><h2 id="dialog-title">{{ modalTitle }}</h2><button class="icon-button" :aria-label="t('common.close')" autofocus @click="closeModal"><X :size="21" /></button></div>
       <div class="dialog-content">
         <template v-if="modal === 'mirror' && selectedMirror"><p class="dialog-lead">{{ description(selectedMirror) }}</p><div class="mirror-facts"><span>{{ t('mirrors.columns.status') }}</span><span>{{ t(`mirrors.status.${selectedMirror.status}`) }}</span><span>{{ t('mirrors.columns.updated') }}</span><span>{{ relativeTime(selectedMirror.lastSuccess) }}</span><span>{{ t('mirrors.columns.next') }}</span><span>{{ nextLabel(selectedMirror) }}</span></div><MarkdownContent v-if="selectedMirror.help" :source="selectedMirror.help" lang="zh-CN" /><p v-else class="dialog-hint">{{ t('common.noHelp') }}</p><div class="dialog-actions"><a class="text-button" :href="selectedMirror.browseUrl">{{ t('common.openDirectory') }}<ArrowRight :size="15" /></a><a v-if="selectedMirror.website" :href="selectedMirror.website" target="_blank" rel="noopener noreferrer" class="text-button">{{ t('mirrors.official') }}<ExternalLink :size="14" /></a></div></template>
         <template v-else-if="modal === 'help'"><p class="dialog-lead">{{ t('mirrors.helpIntro') }}</p><div class="help-grid"><button v-for="mirror in mirrors" :key="mirror.name" @click="openModal('mirror', mirror)"><span class="distro-mark" :style="{ '--distro-color': mirror.color }" aria-hidden="true">{{ mirror.mark }}</span><span>{{ mirror.name }}</span><ArrowRight :size="15" /></button></div></template>
-        <template v-else-if="modal === 'news'"><template v-if="activeNews"><time class="article-date" :datetime="activeNews.date">{{ d(new Date(activeNews.date), 'article') }}</time><MarkdownContent :source="activeNews.body" lang="zh-CN" /></template><template v-else><p class="dialog-lead">{{ t('announcements.newsIntro') }}</p><button v-for="item in announcements" :key="item.id" class="article-link" @click="selectedNews = item.id"><span lang="zh-CN">{{ item.title }}</span><ArrowRight :size="17" /></button></template></template>
         <template v-else-if="modal === 'downloads'"><p class="dialog-lead">{{ t('announcements.downloadsIntro') }}</p><p v-if="!distributions.length" class="dialog-hint">{{ t('common.noDownloads') }}</p><div class="modal-downloads"><a v-for="distro in distributions" :key="distro.name" :href="distro.url" target="_blank" rel="noopener noreferrer"><span>{{ distro.name }} {{ distro.version }}</span><ArrowUpRight :size="18" /></a></div></template>
         <template v-else-if="modal === 'about'"><img class="about-seal" :src="site?.avatar || '/assets/ouc-seal.png'" alt="" width="80" height="80" /><p class="article-body">{{ t('common.aboutBody') }}</p><div class="about-links"><a href="https://www.itouc.cn/" target="_blank" rel="noopener noreferrer">{{ t('common.studio') }}<ArrowUpRight :size="15" /></a><a href="https://github.com/tuna/tunasync" target="_blank" rel="noopener noreferrer">{{ t('common.source') }} · tunasync<ArrowUpRight :size="15" /></a></div></template>
       </div>

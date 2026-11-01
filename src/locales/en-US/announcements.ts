@@ -1,5 +1,8 @@
 export default {
   "title": "Announcements",
+  "loading": "Loading announcements…",
+  "loadFailed": "Could not load announcements. Please try again.",
+  "retry": "Reload",
   "more": "All announcements",
   "moreLabel": "All",
   "downloads": "Downloads",

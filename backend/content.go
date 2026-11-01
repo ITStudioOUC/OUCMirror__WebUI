@@ -291,10 +291,22 @@ func (a *App) public(w http.ResponseWriter, r *http.Request) {
 		mirrors = append(mirrors, publicMirror(job, meta))
 	}
 	sort.Slice(mirrors, func(i, j int) bool { return mirrors[i].Name < mirrors[j].Name })
-	announcements, err := a.records("announcements")
+	published, err := a.publishedAnnouncements()
 	if err != nil {
 		a.internal(w, err)
 		return
+	}
+	// The home page only needs recent links. The archive endpoint returns all bodies.
+	if len(published) > 5 {
+		published = published[:5]
+	}
+	respond(w, 200, map[string]any{"site": site.Data, "mirrors": mirrors, "announcements": published, "source": map[string]any{"updatedAt": updated, "stale": upstreamError != "" || updated == 0 || time.Now().UnixMilli()-updated > 60000, "code": upstreamError}})
+}
+
+func (a *App) publishedAnnouncements() ([]Record, error) {
+	announcements, err := a.records("announcements")
+	if err != nil {
+		return nil, err
 	}
 	published := []Record{}
 	for _, record := range announcements {
@@ -309,12 +321,23 @@ func (a *App) public(w http.ResponseWriter, r *http.Request) {
 		if a.Pinned != b.Pinned {
 			return a.Pinned
 		}
-		return a.Date > b.Date
+		at, _ := time.Parse(time.RFC3339, a.Date)
+		bt, _ := time.Parse(time.RFC3339, b.Date)
+		if !at.Equal(bt) {
+			return at.After(bt)
+		}
+		return published[i].ID < published[j].ID
 	})
-	if len(published) > 100 {
-		published = published[:100]
+	return published, nil
+}
+
+func (a *App) announcements(w http.ResponseWriter, r *http.Request) {
+	published, err := a.publishedAnnouncements()
+	if err != nil {
+		a.internal(w, err)
+		return
 	}
-	respond(w, 200, map[string]any{"site": site.Data, "mirrors": mirrors, "announcements": published, "source": map[string]any{"updatedAt": updated, "stale": upstreamError != "" || updated == 0 || time.Now().UnixMilli()-updated > 60000, "code": upstreamError}})
+	respond(w, 200, published)
 }
 func (a *App) overview(w http.ResponseWriter, r *http.Request) {
 	if _, ok := a.require(w, r, false); !ok {

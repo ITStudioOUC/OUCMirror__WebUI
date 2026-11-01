@@ -45,7 +45,7 @@ go -C backend build -o ../.local/mirrorouc .
 ./mirrorouc -static ./dist -data ./data -manager http://127.0.0.1:12345 -worker YOUR_WORKER_ID
 ```
 
-默认监听 `127.0.0.1:8081`，可通过 `-listen` 修改。首页为 `/`，管理后台为 `/admin`，同步状态页为 `/status`。数据库与上传文件保存在 `data/`，更新时保留该目录。
+默认监听 `127.0.0.1:8081`，可通过 `-listen` 修改。首页为 `/`，公告页为 `/announcements`，管理后台为 `/admin`，同步状态页为 `/status`。数据库与上传文件保存在 `data/`，更新时保留该目录。
 
 镜像目录与下载由已有的 Web 服务器提供，路径为 `/mirrors/<源名>/`。自定义目录页的 Fancyindex 模板随前端构建生成在 `dist/fancy-index/` 中。
 

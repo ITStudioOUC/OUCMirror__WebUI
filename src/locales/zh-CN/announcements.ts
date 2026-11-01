@@ -1,5 +1,8 @@
 export default {
   "title": "站点公告",
+  "loading": "正在加载公告…",
+  "loadFailed": "公告加载失败，请稍后重试。",
+  "retry": "重新加载",
   "more": "全部公告",
   "moreLabel": "全部",
   "downloads": "常用下载",

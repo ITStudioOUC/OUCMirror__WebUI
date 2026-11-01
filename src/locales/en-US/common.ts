@@ -1,4 +1,5 @@
 export default {
+  skipAnnouncements: 'Skip to announcements',
   skipAdmin: 'Skip to administration',
   loading: 'Loading mirrors…',
   stale: 'Connection interrupted. Showing the last collected data.',
@@ -16,7 +17,7 @@ export default {
   "skipStatus": "Skip to site status",
   "nav": {
     "mirrors": "Mirrors",
-    "news": "News",
+    "news": "Announcements",
     "status": "Status",
     "feedback": "ISSUE"
   },

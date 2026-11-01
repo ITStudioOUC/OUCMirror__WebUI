@@ -1,5 +1,6 @@
 export default {
   skipAdmin: '跳转到站点管理',
+  skipAnnouncements: '跳转到站点公告',
   loading: '正在加载镜像数据…',
   stale: '连接暂时中断，显示最近一次同步数据。',
   unavailable: '镜像数据暂时不可用，请稍后刷新。',
@@ -16,7 +17,7 @@ export default {
   "skipStatus": "跳转到站点状态",
   "nav": {
     "mirrors": "镜像列表",
-    "news": "新闻",
+    "news": "公告",
     "status": "站点状态",
     "feedback": "问题反馈"
   },

@@ -103,6 +103,7 @@ func (a *App) handler() http.Handler {
 		respond(w, 200, map[string]string{"status": "ok"})
 	})
 	mux.HandleFunc("GET /api/v1/public", a.public)
+	mux.HandleFunc("GET /api/v1/announcements", a.announcements)
 	mux.HandleFunc("GET /api/v1/monitoring", a.monitoring)
 	mux.HandleFunc("GET /api/v1/job-speeds", a.jobSpeeds)
 	mux.HandleFunc("POST /api/v1/auth/login", a.login)
@@ -140,7 +141,7 @@ func (a *App) handler() http.Handler {
 			return
 		}
 		path := r.URL.Path
-		if path == "/" || path == "/status" || path == "/status/" || path == "/admin" || strings.HasPrefix(path, "/admin/") {
+		if path == "/" || path == "/status" || path == "/status/" || path == "/announcements" || path == "/announcements/" || path == "/admin" || strings.HasPrefix(path, "/admin/") {
 			http.ServeFile(w, r, filepath.Join(a.cfg.Static, "index.html"))
 			return
 		}

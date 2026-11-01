@@ -3,6 +3,7 @@ import { computed, nextTick, onBeforeUnmount, onMounted, reactive, ref } from 'v
 import { useI18n } from 'vue-i18n'
 import { api, ApiError, jsonBody, setSession, type AdminSession, type AdminUser, type AnnouncementContent, type AuditPage, type ConfigVersion, type ContentRecord, type MirrorMetadata, type Overview, type SiteSettings, type SyncConfig, type SyncConfigMirror, type SyncJob } from '../api'
 import { supportedLocales } from '../locales'
+import { announcementUrl } from '../announcements'
 import MarkdownContent from './MarkdownContent.vue'
 
 const { t, te, d, n } = useI18n({ useScope: 'global' })
@@ -24,6 +25,11 @@ const audit = ref<AuditPage>({ items: [], page: 1, pageSize: 10, total: 0, total
 const search = ref('')
 const jobs = computed(() => (overview.value?.jobs || []).filter(job => `${job.name} ${job.upstream}`.toLowerCase().includes(search.value.toLowerCase())).sort((a, b) => a.name.localeCompare(b.name, 'en')))
 const articlesEditor = ref<ContentRecord<AnnouncementContent> | null>(null)
+const articleForm = ref<HTMLFormElement>()
+const articleView = ref<'write' | 'preview'>('write')
+const articlePublished = computed(() => articlesEditor.value?.data.published ?? false)
+const sortedArticles = computed(() => [...articles.value].sort((a, b) => Number(b.data.pinned) - Number(a.data.pinned) || Date.parse(b.data.date) - Date.parse(a.data.date)))
+const articleDate = computed(() => articlesEditor.value?.data.date ? new Intl.DateTimeFormat('en-CA', { year: 'numeric', month: '2-digit', day: '2-digit', timeZone: 'Asia/Shanghai' }).format(new Date(articlesEditor.value.data.date)) : '')
 const mirrorEditor = ref<ContentRecord<MirrorMetadata> | null>(null)
 const editLocale = ref('zh-CN')
 const logs = ref<{ name: string; text: string } | null>(null)
@@ -99,9 +105,29 @@ function confirmed() { const action = confirmation.value?.action; confirmDialog.
 function newArticle() {
   const id = Array.from(crypto.getRandomValues(new Uint8Array(16)), byte => byte.toString(16).padStart(2, '0')).join('')
   articlesEditor.value = { id, revision: 0, updatedAt: 0, data: { title: '', body: '', published: false, pinned: false, date: new Date().toISOString() } }
+  void focusArticle()
 }
-function editArticle(record: ContentRecord<AnnouncementContent>) { articlesEditor.value = clone(record); articlesEditor.value.data.title ||= ''; articlesEditor.value.data.body ||= '' }
-async function saveArticle() { if (!articlesEditor.value) return; articlesEditor.value = await saveRecord('announcements', articlesEditor.value); articles.value = await api('/admin/records/announcements') }
+async function focusArticle() {
+  articleView.value = 'write'
+  await nextTick()
+  articleForm.value?.scrollIntoView({ block: 'start' })
+  articleForm.value?.querySelector<HTMLInputElement>('[name="article-title"]')?.focus({ preventScroll: true })
+}
+function editArticle(record: ContentRecord<AnnouncementContent>) { articlesEditor.value = clone(record); articlesEditor.value.data.title ||= ''; articlesEditor.value.data.body ||= ''; void focusArticle() }
+function submitArticle(event: Event) {
+  const published = ((event as SubmitEvent).submitter as HTMLButtonElement | null)?.value === 'publish'
+  void run(() => saveArticle(published))
+}
+async function saveArticle(published: boolean) {
+  if (!articlesEditor.value) return
+  const record = clone(articlesEditor.value)
+  const wasPublished = record.data.published
+  record.data.published = published
+  const saved = await saveRecord('announcements', record)
+  articlesEditor.value = saved
+  articles.value = [saved, ...articles.value.filter(row => row.id !== saved.id)]
+  notice.value = t(published ? wasPublished ? 'admin.articleUpdated' : 'admin.articlePublished' : wasPublished ? 'admin.articleWithdrawn' : 'admin.draftSaved')
+}
 function deleteArticle(record: ContentRecord<AnnouncementContent>) {
   void ask(t('admin.deleteConfirm', { name: record.data.title }), async () => {
     await api(`/admin/records/announcements/${record.id}`, { method: 'DELETE', body: jsonBody({ revision: record.revision }) })
@@ -177,9 +203,21 @@ onBeforeUnmount(() => clearInterval(poll))
         <section v-if="logs" class="admin-editor"><div class="admin-toolbar"><h3>{{ logs.name }} · {{ t('admin.logs') }}</h3><div class="admin-actions"><button :disabled="busy" @click="run(() => showLogs(logs!.name))">{{ t('admin.refresh') }}</button><button @click="logs = null">{{ t('admin.close') }}</button></div></div><p>{{ t('admin.logTail') }}</p><pre class="admin-log">{{ logs.text }}</pre></section>
       </template>
       <template v-if="tab === 'announcements'">
-        <button class="primary" @click="newArticle">{{ t('admin.newArticle') }}</button>
-        <div class="admin-table-wrap"><table><thead><tr><th>{{ t('admin.articleTitle') }}</th><th>{{ t('admin.status') }}</th><th>{{ t('admin.date') }}</th><th>{{ t('admin.actions') }}</th></tr></thead><tbody><tr v-for="row in articles" :key="row.id"><td lang="zh-CN">{{ row.data.title }}</td><td>{{ t(row.data.published ? 'admin.published' : 'admin.draft') }}</td><td>{{ date(row.data.date) }}</td><td><div class="row-actions"><button @click="editArticle(row)">{{ t('admin.edit') }}</button><button @click="deleteArticle(row)">{{ t('admin.remove') }}</button></div></td></tr></tbody></table><p v-if="!articles.length">{{ t('admin.empty') }}</p></div>
-        <form v-if="articlesEditor" class="admin-editor admin-form" @submit.prevent="run(saveArticle)"><div class="admin-toolbar"><h3>{{ t('admin.edit') }}</h3><button type="button" @click="articlesEditor = null">{{ t('admin.close') }}</button></div><label>{{ t('admin.articleTitle') }}<input v-model="articlesEditor.data.title" maxlength="300" lang="zh-CN" required /></label><label>{{ t('admin.body') }}<textarea v-model="articlesEditor.data.body" lang="zh-CN" rows="12" /></label><h3>{{ t('admin.preview') }}</h3><MarkdownContent :source="articlesEditor.data.body" lang="zh-CN" /><label>{{ t('admin.date') }}<input :value="articlesEditor.data.date.slice(0, 10)" type="date" required @input="articlesEditor.data.date = `${($event.target as HTMLInputElement).value}T00:00:00+08:00`" /></label><div class="admin-actions"><label class="check"><input v-model="articlesEditor.data.published" type="checkbox" />{{ t('admin.published') }}</label><label class="check"><input v-model="articlesEditor.data.pinned" type="checkbox" />{{ t('admin.pinned') }}</label></div><button class="primary" :disabled="busy">{{ t('admin.save') }}</button></form>
+        <div class="admin-actions"><button class="primary" :disabled="busy" @click="newArticle">{{ t('admin.newArticle') }}</button><a class="admin-public-link" href="/announcements" target="_blank" rel="noopener noreferrer">{{ t('admin.viewAnnouncements') }}</a></div>
+        <form v-if="articlesEditor" ref="articleForm" class="admin-editor admin-form announcement-editor" @submit.prevent="submitArticle">
+          <div class="admin-toolbar"><h3>{{ t(articlesEditor.revision ? 'admin.editArticle' : 'admin.newArticle') }}</h3><button type="button" :disabled="busy" @click="articlesEditor = null">{{ t('admin.close') }}</button></div>
+          <fieldset :disabled="busy">
+            <label>{{ t('admin.articleTitle') }}<input v-model="articlesEditor.data.title" name="article-title" maxlength="300" lang="zh-CN" required /></label>
+            <div class="article-options"><label>{{ t('admin.date') }}<input :value="articleDate" type="date" required @input="articlesEditor.data.date = ($event.target as HTMLInputElement).value ? `${($event.target as HTMLInputElement).value}T00:00:00+08:00` : ''" /></label><label class="check"><input v-model="articlesEditor.data.pinned" type="checkbox" />{{ t('admin.pinned') }}</label><span class="article-state">{{ t(articlePublished ? 'admin.published' : 'admin.draft') }}</span></div>
+            <div class="article-view-switch" :aria-label="t('admin.articleView')"><button type="button" :aria-pressed="articleView === 'write'" @click="articleView = 'write'">{{ t('admin.write') }}</button><button type="button" :aria-pressed="articleView === 'preview'" @click="articleView = 'preview'">{{ t('admin.preview') }}</button></div>
+            <div class="article-workspace" :data-view="articleView">
+              <label class="article-source">{{ t('admin.body') }}<textarea v-model="articlesEditor.data.body" lang="zh-CN" rows="18" maxlength="250000" spellcheck="false" /></label>
+              <section class="article-preview" :aria-label="t('admin.preview')"><h4>{{ t('admin.preview') }}</h4><h2 lang="zh-CN">{{ articlesEditor.data.title || t('admin.articleTitle') }}</h2><time v-if="articlesEditor.data.date" :datetime="articlesEditor.data.date">{{ d(new Date(articlesEditor.data.date), 'article') }}</time><MarkdownContent v-if="articlesEditor.data.body" :source="articlesEditor.data.body" lang="zh-CN" /><p v-else class="article-empty">{{ t('admin.previewEmpty') }}</p></section>
+            </div>
+            <div class="admin-actions article-submit"><button type="submit" value="publish" class="primary">{{ t(articlePublished ? 'admin.updateArticle' : 'admin.publishArticle') }}</button><button type="submit" value="draft">{{ t(articlePublished ? 'admin.withdrawArticle' : 'admin.saveDraft') }}</button><a v-if="articlePublished" class="admin-public-link" :href="announcementUrl(articlesEditor.id)" target="_blank" rel="noopener noreferrer">{{ t('admin.viewArticle') }}</a></div>
+          </fieldset>
+        </form>
+        <div class="admin-table-wrap articles-table"><table><thead><tr><th>{{ t('admin.articleTitle') }}</th><th>{{ t('admin.status') }}</th><th>{{ t('admin.date') }}</th><th>{{ t('admin.actions') }}</th></tr></thead><tbody><tr v-for="row in sortedArticles" :key="row.id"><td class="article-list-title"><span lang="zh-CN">{{ row.data.title }}</span><span v-if="row.data.pinned" class="article-pin">{{ t('admin.pinned') }}</span></td><td>{{ t(row.data.published ? 'admin.published' : 'admin.draft') }}</td><td><time :datetime="row.data.date">{{ d(new Date(row.data.date), 'article') }}</time></td><td><div class="row-actions"><button :disabled="busy" @click="editArticle(row)">{{ t('admin.edit') }}</button><a v-if="row.data.published" class="admin-public-link" :href="announcementUrl(row.id)" target="_blank" rel="noopener noreferrer">{{ t('admin.viewArticle') }}</a><button :disabled="busy" @click="deleteArticle(row)">{{ t('admin.remove') }}</button></div></td></tr></tbody></table><p v-if="!articles.length">{{ t('admin.empty') }}</p></div>
       </template>
       <form v-if="tab === 'settings' && settings" class="admin-form" @submit.prevent="run(async () => { settings = await saveRecord('settings', settings!) })">
         <label>{{ t('admin.contentLanguage') }}<select v-model="editLocale"><option v-for="language in supportedLocales" :key="language" :value="language">{{ t('common.languageName', {}, { locale: language }) }}</option></select></label>
@@ -244,6 +282,32 @@ input, textarea, select { width: 100%; min-width: 0; min-height: 40px; padding: 
 textarea { resize: vertical; line-height: 1.7; } .check { flex-direction: row; align-items: center; gap: 8px; } .check input { width: 18px; min-height: 18px; accent-color: var(--blue); }
 .admin-form > button { justify-self: start; } .admin-columns { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 18px; } .admin-array { display: flex; flex-wrap: wrap; gap: 12px; align-items: end; padding: 14px 0; border-bottom: 1px solid var(--line); } .admin-array label { flex: 1; min-width: 160px; }
 .admin-related-links > button { margin-top: 16px; } .admin-related-links .admin-actions { gap: 6px; }
+.admin-public-link { color: var(--blue); font-size: 14px; text-underline-offset: 3px; } .admin-public-link:hover { text-decoration: underline; }
+.announcement-editor { max-width: none; scroll-margin-top: 20px; }
+.announcement-editor .admin-toolbar { margin-bottom: 0; } .announcement-editor h3 { margin: 0; }
+.announcement-editor fieldset { display: grid; gap: 22px; min-width: 0; padding: 0; margin: 0; border: 0; }
+.article-options { display: flex; gap: 24px; align-items: center; flex-wrap: wrap; } .article-options > label:first-child { width: 200px; } .article-options .check { padding-top: 24px; }
+.article-state { margin-left: auto; color: var(--muted); font-size: 14px; }
+.article-workspace { display: grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap: 28px; align-items: start; }
+.article-source textarea { min-height: 380px; font-family: ui-monospace, Consolas, monospace; font-size: 14px; }
+.article-preview { min-width: 0; overflow-wrap: anywhere; } .article-preview h4 { margin: 0 0 12px; font-size: 14px; font-weight: 500; }
+.article-preview h2 { font-size: 24px; color: var(--blue); line-height: 1.5; } .article-preview time { display: block; margin: 10px 0 22px; color: var(--muted); font-size: 14px; }
+.article-preview :deep(.markdown-content) { font-size: 16px; line-height: 1.9; } .article-empty { color: var(--muted); font-size: 14px; }
+.article-view-switch { display: none; gap: 8px; } .article-view-switch [aria-pressed='true'] { color: var(--blue); border-color: var(--blue); }
+.article-list-title { overflow-wrap: anywhere; } .article-pin { margin-left: 10px; color: var(--blue); font-size: 12px; }
+.articles-table td:not(:first-child) { white-space: nowrap; }
+@media (max-width: 900px) {
+  .article-workspace { display: block; } .article-view-switch { display: flex; }
+  .article-workspace[data-view='write'] .article-preview, .article-workspace[data-view='preview'] .article-source { display: none; }
+  .article-preview > h4 { display: none; }
+}
+@media (max-width: 640px) {
+  .article-options { gap: 16px; } .article-options > label:first-child { width: min(200px, 100%); } .article-options .check { padding-top: 0; }
+  .article-submit button { min-height: 44px; }
+  .articles-table table, .articles-table tbody { display: block; } .articles-table thead { display: none; }
+  .articles-table tr { display: grid; grid-template-columns: auto 1fr; gap: 10px 16px; padding: 18px 0; border-bottom: 1px solid var(--line); }
+  .articles-table td { padding: 0; border: 0; } .articles-table td:first-child, .articles-table td:last-child { grid-column: 1 / -1; }
+}
 .admin-table-wrap { max-width: 100%; overflow: auto; margin: 20px 0; } table { width: 100%; border-collapse: collapse; font-size: 14px; } th, td { padding: 12px 10px; border-bottom: 1px solid var(--line); text-align: left; vertical-align: middle; } thead th { font-weight: 700; white-space: nowrap; } tbody th { font-weight: 500; }
 .admin-pagination, .admin-page-controls { display: flex; align-items: center; flex-wrap: wrap; gap: 12px; }
 .admin-pagination { justify-content: space-between; font-size: 14px; }
