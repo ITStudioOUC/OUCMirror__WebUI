@@ -1,4 +1,13 @@
 export default {
+  skipAdmin: 'Skip to administration',
+  loading: 'Loading mirrors…',
+  stale: 'Connection interrupted. Showing the last collected data.',
+  unavailable: 'Mirror data is unavailable. Refresh shortly.',
+  noAnnouncements: 'No announcements',
+  noDownloads: 'No downloads configured',
+  noHelp: 'No usage guide has been added for this mirror.',
+  openDirectory: 'Browse mirror directory',
+
   "brand": "MirrorOUC",
   "university": "Ocean University of China",
   "siteName": "Ocean University of China Software Mirrors",

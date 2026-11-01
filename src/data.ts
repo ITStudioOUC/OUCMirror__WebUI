@@ -6,6 +6,9 @@ export interface Mirror {
   color: string
   category: Exclude<Category, 'all'>
   descriptionKey: string
+  description?: Record<string, string>
+  help?: string
+  browseUrl?: string
   status: MirrorStatus
   lastSuccess: number | null
   nextSync: number | null

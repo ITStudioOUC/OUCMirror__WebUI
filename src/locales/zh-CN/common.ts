@@ -1,4 +1,13 @@
 export default {
+  skipAdmin: '跳转到站点管理',
+  loading: '正在加载镜像数据…',
+  stale: '连接暂时中断，显示最近一次同步数据。',
+  unavailable: '镜像数据暂时不可用，请稍后刷新。',
+  noAnnouncements: '暂无公告',
+  noDownloads: '暂无下载项',
+  noHelp: '此镜像暂未添加使用说明。',
+  openDirectory: '浏览镜像目录',
+
   "brand": "MirrorOUC",
   "university": "中国海洋大学",
   "siteName": "中国海洋大学软件镜像源",

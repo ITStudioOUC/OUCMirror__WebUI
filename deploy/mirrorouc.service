@@ -1,0 +1,26 @@
+[Unit]
+Description=MirrorOUC web and administration API
+After=network.target tunasync-manager.service mirrorouc-config.service
+Wants=mirrorouc-config.service
+
+[Service]
+User=mirrorouc
+Group=mirrorouc
+WorkingDirectory=/opt/mirrorouc/current
+EnvironmentFile=/etc/mirrorouc/mirrorouc.env
+ExecStart=/opt/mirrorouc/current/mirrorouc
+Restart=on-failure
+RestartSec=5
+UMask=0077
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+ReadWritePaths=/var/lib/mirrorouc
+ProtectKernelTunables=true
+ProtectControlGroups=true
+RestrictSUIDSGID=true
+RestrictAddressFamilies=AF_UNIX AF_INET AF_INET6
+
+[Install]
+WantedBy=multi-user.target

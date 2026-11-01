@@ -1,4 +1,14 @@
 export default {
+  speedCollecting: '采集中',
+  speedDescription: '约 2 秒采样窗口内，此仓库全部并行上游连接的 TCP 接收速率。',
+  speedUnits: { bytes: '{value} B/s', kilobytes: '{value} KB/s', megabytes: '{value} MB/s', gigabytes: '{value} GB/s' },
+  live: '实时监控',
+  stale: '数据采集暂时中断',
+  loading: '正在获取监控数据…',
+  unavailable: '暂时无法获取监控数据。',
+  collecting: '正在等待有效采样…',
+  capacityGB: '{value} GB',
+
   title: '服务器监控',
   demo: '演示数据',
   range: '监控时间范围',
@@ -33,6 +43,6 @@ export default {
   chartHelp: '{title}。使用左右方向键查看时间点，Home / End 跳到首尾，Esc 关闭提示。',
   toggleSeries: '显示或隐藏 {name}',
   search: '搜索镜像名称或上游地址…',
-  columns: { name: '镜像名称', update: '同步时间', upstream: '上游地址', status: '状态', size: '大小' },
+  columns: { speed: '拉取速度', name: '镜像名称', update: '同步时间', upstream: '上游地址', status: '状态', size: '大小' },
   syncTime: { success: '最近成功同步', attempt: '最近尝试同步', started: '本次同步开始', next: '下次计划同步' },
 }

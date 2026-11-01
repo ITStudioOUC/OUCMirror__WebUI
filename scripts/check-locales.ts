@@ -9,6 +9,7 @@ import monitorEn from '../src/locales/en-US/monitor.ts'
 import { datetimeFormats as datetimeZh, numberFormats as numbersZh } from '../src/locales/zh-CN/formats.ts'
 import { datetimeFormats as datetimeEn, numberFormats as numbersEn } from '../src/locales/en-US/formats.ts'
 import { createI18n } from 'vue-i18n'
+import { adminZh, adminEn } from '../src/locales/admin-messages.ts'
 
 function flatten(value: Record<string, unknown>, prefix = ''): Record<string, string> {
   return Object.fromEntries(Object.entries(value).flatMap(([key, entry]) => {
@@ -17,8 +18,8 @@ function flatten(value: Record<string, unknown>, prefix = ''): Record<string, st
   }))
 }
 
-const zh = flatten({ common: commonZh, mirrors: mirrorsZh, announcements: announcementsZh, monitor: monitorZh })
-const en = flatten({ common: commonEn, mirrors: mirrorsEn, announcements: announcementsEn, monitor: monitorEn })
+const zh = flatten({ common: commonZh, mirrors: mirrorsZh, announcements: announcementsZh, monitor: monitorZh, admin: adminZh })
+const en = flatten({ common: commonEn, mirrors: mirrorsEn, announcements: announcementsEn, monitor: monitorEn, admin: adminEn })
 const errors: string[] = []
 const formats = {
   'zh-CN': { datetimeFormats: datetimeZh, numberFormats: numbersZh },

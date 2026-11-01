@@ -1,4 +1,5 @@
 :root {
+  --muted: var(--ink-2);
   /* Palette from itouc.cn; source values and component mapping are in DESIGN.md. */
   --blue: #0969da; --blue-bright: #58a6ff; --blue-soft: rgba(9, 105, 218, .08);
   --ink: #24292f; --ink-2: #343a40; --ink-3: var(--ink-2); --line: #d0d7de; --line-soft: #d8dee4;
@@ -234,3 +235,6 @@ h2 { margin: 0; font-size: 19px; font-weight: 600; letter-spacing: -.04em; }
 }
 @media (prefers-reduced-motion: reduce) { *, *::before, *::after { scroll-behavior: auto !important; animation-duration: .001ms !important; animation-iteration-count: 1 !important; transition-duration: .001ms !important; } }
 :focus-visible { outline: 2px solid var(--blue-bright); outline-offset: 3px; }
+
+.data-notice { padding: 10px 0; color: var(--ink-2); font-size: 14px; }
+[data-theme='dark'] .admin-page :is(h1,h2,h3,thead th) { color: #fff; }

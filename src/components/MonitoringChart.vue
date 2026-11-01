@@ -48,7 +48,9 @@ const stats = computed(() => props.panel.series.map(series => ({
   mean: series.values.reduce((sum, value) => sum + value, 0) / Math.max(1, series.values.length),
   latest: series.values.at(-1) ?? 0,
   max: Math.max(0, ...series.values),
+  ...series.stats,
 })))
+const available = computed(() => props.panel.available !== false && props.timestamps.length > 1)
 const sampleIndex = computed(() => inspected.value === null ? null : Math.min(inspected.value, props.timestamps.length - 1))
 const tooltipLeft = computed(() => `${Math.max(4, Math.min(x(sampleIndex.value ?? 0) + 12, width.value - 206))}px`)
 function toggleSeries(id: string) {
@@ -91,7 +93,8 @@ onBeforeUnmount(() => observer?.disconnect())
   <article class="monitor-chart" :data-panel="panel.id">
     <h3>{{ t(panel.titleKey) }}</h3>
     <div ref="plot" class="monitor-plot">
-      <svg :viewBox="`0 0 ${width} ${height}`" role="img" :aria-label="t('monitor.chartHelp', { title: t(panel.titleKey) })" tabindex="0" @pointermove="inspectPointer" @pointerdown="inspectPointer" @pointerleave="leavePointer" @pointercancel="inspected = null" @blur="inspected = null" @keydown="onKeydown">
+      <p v-if="!available" class="chart-empty">{{ t('monitor.collecting') }}</p>
+      <svg v-else :viewBox="`0 0 ${width} ${height}`" role="img" :aria-label="t('monitor.chartHelp', { title: t(panel.titleKey) })" tabindex="0" @pointermove="inspectPointer" @pointerdown="inspectPointer" @pointerleave="leavePointer" @pointercancel="inspected = null" @blur="inspected = null" @keydown="onKeydown">
         <g v-for="tick in yTicks" :key="tick" class="chart-grid">
           <line :x1="left" :x2="width - right" :y1="y(tick)" :y2="y(tick)" />
           <text :x="left - 8" :y="y(tick) + 3" text-anchor="end">{{ format(tick) }}</text>
@@ -109,13 +112,13 @@ onBeforeUnmount(() => observer?.disconnect())
           <circle v-for="series in paths" :key="series.id" :cx="x(sampleIndex)" :cy="y(series.plottedValues[sampleIndex]!)" r="3" :fill="series.color" />
         </g>
       </svg>
-      <div v-if="sampleIndex !== null" class="chart-tooltip" :style="{ left: tooltipLeft }" aria-hidden="true">
+      <div v-if="available && sampleIndex !== null" class="chart-tooltip" :style="{ left: tooltipLeft }" aria-hidden="true">
         <time :datetime="new Date(timestamps[sampleIndex]!).toISOString()">{{ d(timestamps[sampleIndex]!, 'monitorSample') }}</time>
         <div v-for="series in visible" :key="series.id"><span><i :style="{ background: series.color }" />{{ t(series.labelKey) }}</span><strong>{{ format(series.values[sampleIndex]!) }}</strong></div>
       </div>
       <p class="sr-only" aria-live="polite"><template v-if="keyboardInspection && sampleIndex !== null">{{ d(timestamps[sampleIndex]!, 'monitorSample') }}<span v-for="series in visible" :key="series.id"> {{ t(series.labelKey) }} {{ format(series.values[sampleIndex]!) }};</span></template></p>
     </div>
-    <table class="chart-legend">
+    <table v-if="available" class="chart-legend">
       <thead><tr><th scope="col">{{ t('monitor.legend.name') }}</th><th scope="col" class="chart-mean">{{ t('monitor.legend.mean') }}</th><th scope="col">{{ t('monitor.legend.latest') }}</th><th scope="col">{{ t('monitor.legend.max') }}</th></tr></thead>
       <tbody><tr v-for="series in stats" :key="series.id" :class="{ 'series-hidden': hidden.includes(series.id) }">
         <th scope="row"><button type="button" :aria-pressed="!hidden.includes(series.id)" :aria-label="t('monitor.toggleSeries', { name: t(series.labelKey) })" @click="toggleSeries(series.id)"><i :style="{ background: series.color }" />{{ t(series.labelKey) }}</button></th>
@@ -129,6 +132,7 @@ onBeforeUnmount(() => observer?.disconnect())
 .monitor-chart { --chart-muted: color-mix(in srgb, var(--ink) 38%, var(--panel)); min-width: 0; padding: 16px 14px 10px; border: 1px solid var(--line); border-radius: 6px; background: var(--panel); }
 h3 { margin: 0 0 10px; font-size: 14px; font-weight: 600; line-height: 1.5; }
 .monitor-plot { position: relative; height: 216px; }
+.chart-empty { height: 100%; display: grid; place-items: center; color: var(--ink-2); font-size: 13px; }
 svg { display: block; width: 100%; height: 100%; overflow: visible; touch-action: pan-y; }
 .chart-grid line { stroke: var(--line); stroke-opacity: .45; stroke-width: .5; }
 .chart-grid text { fill: color-mix(in srgb, var(--ink) 75%, var(--panel)); font-size: 10px; font-variant-numeric: tabular-nums; }

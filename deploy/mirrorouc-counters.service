@@ -1,0 +1,9 @@
+[Unit]
+Description=MirrorOUC passive protocol byte counters
+After=nftables.service
+[Service]
+Type=oneshot
+ExecStart=/usr/local/lib/mirrorouc/ensure-counters.sh
+RemainAfterExit=yes
+[Install]
+WantedBy=multi-user.target

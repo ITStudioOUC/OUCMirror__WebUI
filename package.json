@@ -3,7 +3,9 @@
   "private": true,
   "version": "0.1.0",
   "type": "module",
-  "engines": { "node": ">=22.18.0" },
+  "engines": {
+    "node": ">=22.18.0"
+  },
   "scripts": {
     "dev": "vite --host 127.0.0.1",
     "build": "vue-tsc -b && vite build",
@@ -12,7 +14,9 @@
     "check:monitoring": "node scripts/check-monitoring.ts"
   },
   "dependencies": {
+    "dompurify": "^3.4.17",
     "lucide-vue-next": "^0.468.0",
+    "marked": "^18.1.2",
     "vue": "^3.5.22",
     "vue-i18n": "^11.1.12"
   },

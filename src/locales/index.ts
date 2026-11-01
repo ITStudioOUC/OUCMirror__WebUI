@@ -7,12 +7,13 @@ import mirrorsEn from './en-US/mirrors'
 import announcementsEn from './en-US/announcements'
 import monitorZh from './zh-CN/monitor'
 import monitorEn from './en-US/monitor'
+import { adminZh, adminEn } from './admin-messages'
 import { datetimeFormats as datetimeZh, numberFormats as numbersZh } from './zh-CN/formats'
 import { datetimeFormats as datetimeEn, numberFormats as numbersEn } from './en-US/formats'
 
 export const messages = {
-  'zh-CN': { common: commonZh, mirrors: mirrorsZh, announcements: announcementsZh, monitor: monitorZh },
-  'en-US': { common: commonEn, mirrors: mirrorsEn, announcements: announcementsEn, monitor: monitorEn },
+  'zh-CN': { common: commonZh, mirrors: mirrorsZh, announcements: announcementsZh, monitor: monitorZh, admin: adminZh },
+  'en-US': { common: commonEn, mirrors: mirrorsEn, announcements: announcementsEn, monitor: monitorEn, admin: adminEn },
 }
 export type Locale = keyof typeof messages
 export const supportedLocales = Object.keys(messages) as Locale[]

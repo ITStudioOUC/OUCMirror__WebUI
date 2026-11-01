@@ -1,6 +1,6 @@
 export type MonitoringRange = 1 | 6 | 24
 export type MetricUnit = 'gigabits' | 'gigabytes' | 'operations' | 'percent' | 'memory'
-export interface MetricSeries { id: string; labelKey: string; color: string; values: number[] }
+export interface MetricSeries { id: string; labelKey: string; color: string; values: number[]; stats?: { mean: number; latest: number; max: number } }
 export interface MonitoringPanel {
   id: string
   titleKey: string
@@ -8,8 +8,10 @@ export interface MonitoringPanel {
   maximum: number
   stacked: boolean
   series: MetricSeries[]
+  available?: boolean
 }
 export interface MonitoringSnapshot { timestamps: number[]; panels: MonitoringPanel[] }
+export interface LiveMonitoringSnapshot extends MonitoringSnapshot { disks: { name: string; used: number; total: number }[]; updatedAt: number; stale: boolean }
 
 export const demoDisks = [
   { name: '/srv/mirrors', used: 43.2, total: 64 },

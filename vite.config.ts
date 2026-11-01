@@ -3,5 +3,5 @@ import vue from '@vitejs/plugin-vue'
 
 export default defineConfig({
   plugins: [vue()],
-  server: { port: 5173, strictPort: true },
+  server: { port: 5173, strictPort: true, proxy: { '/api': 'http://127.0.0.1:8081', '/uploads': 'http://127.0.0.1:8081', '/mirrors/': 'http://127.0.0.1:8081' } },
 })

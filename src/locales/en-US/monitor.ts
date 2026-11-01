@@ -1,4 +1,14 @@
 export default {
+  speedCollecting: 'Sampling',
+  speedDescription: 'TCP receive rate across this mirror’s parallel upstream connections, sampled about every 2 seconds.',
+  speedUnits: { bytes: '{value} B/s', kilobytes: '{value} KB/s', megabytes: '{value} MB/s', gigabytes: '{value} GB/s' },
+  live: 'Live monitoring',
+  stale: 'Metrics collection interrupted',
+  loading: 'Loading monitoring data…',
+  unavailable: 'Monitoring data is unavailable.',
+  collecting: 'Waiting for valid samples…',
+  capacityGB: '{value} GB',
+
   title: 'Server monitoring',
   demo: 'Demo data',
   range: 'Monitoring time range',
@@ -33,6 +43,6 @@ export default {
   chartHelp: '{title}. Use Left / Right to inspect samples, Home / End to jump to the endpoints, and Esc to dismiss the tooltip.',
   toggleSeries: 'Show or hide {name}',
   search: 'Search mirrors or upstream URLs…',
-  columns: { name: 'Mirror', update: 'Sync time', upstream: 'Upstream', status: 'Status', size: 'Size' },
+  columns: { speed: 'Pull speed', name: 'Mirror', update: 'Sync time', upstream: 'Upstream', status: 'Status', size: 'Size' },
   syncTime: { success: 'Last successful sync', attempt: 'Last attempted sync', started: 'Sync started', next: 'Next scheduled sync' },
 }
