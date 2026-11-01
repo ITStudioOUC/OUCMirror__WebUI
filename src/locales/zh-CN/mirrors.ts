@@ -63,6 +63,27 @@ export default {
   "exampleHint": "以下配置仅演示排版，使用 example.invalid 保留域名，不可用于实际软件源配置。",
   "official": "项目官方网站",
   "helpTitle": "使用帮助",
+  "debian": {
+    "generator": "{format} 软件源配置",
+    "traditional": "传统格式",
+    "version": "Debian 版本",
+    "release": "Debian {version} ({codename})",
+    "sources": "启用源码源",
+    "nonFree": "使用非自由软件源",
+    "securityMirror": "强制安全更新使用镜像",
+    "generated": "生成的软件源配置",
+    "rollingNotice": "testing 和 sid 仅配置对应分支，不添加独立的安全更新、updates 或 backports 源。"
+  },
+  "guides": {
+    "navigation": "镜像使用帮助目录",
+    "choose": "选择镜像帮助",
+    "all": "全部帮助",
+    "loading": "正在加载使用帮助…",
+    "failed": "暂时无法加载使用帮助。",
+    "retry": "重新加载",
+    "notFound": "此镜像暂无已发布的使用帮助。",
+    "empty": "暂无已发布的使用帮助。"
+  },
   "helpIntro": "选择软件源，查看项目介绍与配置示例。",
   "statusTitle": "同步任务",
   "statusIntro": "演示任务会定期切换状态。最近成功时间与当前同步状态分别记录。",

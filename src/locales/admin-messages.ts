@@ -1,4 +1,5 @@
 const pairs = {
+  viewHelp: ['查看帮助页', 'View usage guide'],
   downloadProjects: ['软件项目', 'Software projects'], addDownloadProject: ['添加软件', 'Add software'], removeDownloadProject: ['移除软件', 'Remove software'], softwareName: ['软件名称', 'Software name'],
   downloadDescription: ['软件说明（中文，Markdown）', 'Description (Chinese, Markdown)'], downloadFiles: ['下载链接', 'Download links'], downloadLabel: ['链接名称（版本 / 架构）', 'Link label (version / architecture)'], addDownloadFile: ['添加下载链接', 'Add download link'], saveDownloads: ['保存下载配置', 'Save download catalog'],
   downloadFileEntry: ['下载链接 {index}', 'Download link {index}'], downloadProjectCount: ['共 {count} 个软件', '{count} projects'], unnamedDownload: ['未命名软件 {index}', 'Untitled project {index}'], noDownloadProjects: ['暂无软件，点击“添加软件”开始配置。', 'No projects yet. Select “Add software” to get started.'],

@@ -104,6 +104,8 @@ func (a *App) handler() http.Handler {
 	})
 	mux.HandleFunc("GET /api/v1/public", a.public)
 	mux.HandleFunc("GET /api/v1/announcements", a.announcements)
+	mux.HandleFunc("GET /api/v1/help", a.helpIndex)
+	mux.HandleFunc("GET /api/v1/help/{name}", a.helpArticle)
 	mux.HandleFunc("GET /api/v1/monitoring", a.monitoring)
 	mux.HandleFunc("GET /api/v1/job-speeds", a.jobSpeeds)
 	mux.HandleFunc("POST /api/v1/auth/login", a.login)
@@ -141,6 +143,10 @@ func (a *App) handler() http.Handler {
 			return
 		}
 		path := r.URL.Path
+		if path == "/help" || strings.HasPrefix(path, "/help/") {
+			a.helpPage(w, r)
+			return
+		}
 		if path == "/" || path == "/status" || path == "/status/" || path == "/announcements" || path == "/announcements/" || path == "/admin" || strings.HasPrefix(path, "/admin/") {
 			http.ServeFile(w, r, filepath.Join(a.cfg.Static, "index.html"))
 			return

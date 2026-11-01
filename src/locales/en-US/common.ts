@@ -1,4 +1,5 @@
 export default {
+  skipHelp: 'Skip to mirror usage guide',
   skipAnnouncements: 'Skip to announcements',
   skipAdmin: 'Skip to administration',
   loading: 'Loading mirrors…',

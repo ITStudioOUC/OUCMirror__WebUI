@@ -63,6 +63,27 @@ export default {
   "exampleHint": "This layout example uses the reserved example.invalid domain and cannot be used as a software repository.",
   "official": "Official project website",
   "helpTitle": "Using the mirrors",
+  "debian": {
+    "generator": "{format} repository configuration",
+    "traditional": "Traditional format",
+    "version": "Debian release",
+    "release": "Debian {version} ({codename})",
+    "sources": "Enable source packages",
+    "nonFree": "Include non-free packages",
+    "securityMirror": "Use mirror for security updates",
+    "generated": "Generated repository configuration",
+    "rollingNotice": "testing and sid use their own branch without separate security, updates or backports repositories."
+  },
+  "guides": {
+    "navigation": "Mirror usage guide navigation",
+    "choose": "Choose a mirror guide",
+    "all": "All guides",
+    "loading": "Loading usage guide…",
+    "failed": "The usage guide could not be loaded.",
+    "retry": "Reload",
+    "notFound": "No published usage guide is available for this mirror.",
+    "empty": "No usage guides have been published yet."
+  },
   "helpIntro": "Choose a mirror to view its introduction and configuration example.",
   "statusTitle": "Sync jobs",
   "statusIntro": "Demo jobs change status periodically. The last successful sync is tracked separately from the current status.",

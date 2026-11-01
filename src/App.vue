@@ -2,7 +2,7 @@
 import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import {
-  ArrowRight, ArrowUpRight, BookOpen, Check,
+  ArrowRight, ArrowUpRight, CircleHelp, Check,
   ExternalLink, Menu, Monitor, Moon,
   Search, Sun, X,
 } from 'lucide-vue-next'
@@ -11,10 +11,11 @@ import LanguagePicker from './components/LanguagePicker.vue'
 import StatusPage from './components/StatusPage.vue'
 import AdminPage from './components/AdminPage.vue'
 import AnnouncementsPage from './components/AnnouncementsPage.vue'
-import MarkdownContent from './components/MarkdownContent.vue'
+import HelpPage from './components/HelpPage.vue'
 import DownloadList from './components/DownloadList.vue'
 import { content } from './api'
 import { announcementUrl } from './announcements'
+import { helpRoute, helpUrl } from './help'
 import { usePublicData } from './usePublicData'
 import { useMirrorFormats } from './useMirrorFormats'
 import { type Mirror } from './data'
@@ -42,6 +43,8 @@ const themes: Theme[] = ['light', 'dark', 'system']
 const themeIcons = { light: Sun, dark: Moon, system: Monitor }
 const isStatusPage = window.location.pathname.replace(/\/$/, '') === '/status'
 const isAnnouncementsPage = window.location.pathname.replace(/\/$/, '') === '/announcements'
+const help = helpRoute(window.location.pathname)
+const isHelpPage = help.active
 const navigation = [
   { key: 'mirrors', href: '/', active: !isStatusPage && !isAdminPage && !isAnnouncementsPage },
   { key: 'news', href: '/announcements', active: isAnnouncementsPage },
@@ -61,7 +64,8 @@ watch(locale, (value) => {
 }, { immediate: true })
 watch([locale, site], () => {
   const siteTitle = site.value ? `MirrorOUC · ${content(site.value.name, locale.value)}` : t('common.pageTitle')
-  document.title = isAnnouncementsPage ? `${t('announcements.title')} · ${siteTitle}` : siteTitle
+  const pageTitle = isHelpPage ? (help.name && !help.invalid ? t('mirrors.helpFor', { name: help.name }) : t('mirrors.helpTitle')) : isAnnouncementsPage ? t('announcements.title') : ''
+  document.title = pageTitle ? `${pageTitle} · ${siteTitle}` : siteTitle
 }, { immediate: true })
 function selectTheme(value: Theme) { theme.value = value; themeOpen.value = false }
 
@@ -93,13 +97,13 @@ function nextLabel(mirror: Mirror) {
 }
 function resetSearch() { search.value = ''; searchInput.value?.focus() }
 
-type Modal = 'help' | 'about' | 'downloads' | 'mirror'
+type Modal = 'about' | 'downloads' | 'mirror'
 const dialog = ref<HTMLDialogElement>()
 const modal = ref<Modal | null>(null)
 const selectedMirror = ref<Mirror | null>(null)
 const modalTitle = computed(() => {
   if (modal.value === 'mirror') return selectedMirror.value?.name || ''
-  const keys = { help: 'mirrors.helpTitle', about: 'common.aboutTitle', downloads: 'announcements.downloadsTitle' }
+  const keys = { about: 'common.aboutTitle', downloads: 'announcements.downloadsTitle' }
   return modal.value && modal.value in keys ? t(keys[modal.value as keyof typeof keys]) : ''
 })
 async function openModal(value: Modal, mirror?: Mirror) {
@@ -117,7 +121,7 @@ watch(modal, value => { document.body.classList.toggle('dialog-open', value !== 
 function onKeydown(event: KeyboardEvent) {
   if (event.key === 'Escape') { themeOpen.value = false; mobileOpen.value = false }
   const target = event.target as HTMLElement
-  if (!isAdminPage && !isAnnouncementsPage && !dialog.value?.open && ((event.key === 'k' && (event.ctrlKey || event.metaKey))
+  if (!isAdminPage && !isAnnouncementsPage && !isHelpPage && !dialog.value?.open && ((event.key === 'k' && (event.ctrlKey || event.metaKey))
     || (event.key === '/' && !['INPUT', 'TEXTAREA', 'SELECT'].includes(target.tagName) && !target.isContentEditable))) {
     event.preventDefault()
     if (isStatusPage) statusPage.value?.focusSearch()
@@ -155,7 +159,7 @@ onBeforeUnmount(() => {
 </script>
 
 <template>
-  <a class="skip-link" :href="isAdminPage ? '#administration' : isStatusPage ? '#site-status' : isAnnouncementsPage ? '#announcements' : '#mirrors'">{{ t(isAdminPage ? 'common.skipAdmin' : isStatusPage ? 'common.skipStatus' : isAnnouncementsPage ? 'common.skipAnnouncements' : 'common.skip') }}</a>
+  <a class="skip-link" :href="isAdminPage ? '#administration' : isStatusPage ? '#site-status' : isAnnouncementsPage ? '#announcements' : isHelpPage ? '#mirror-help' : '#mirrors'">{{ t(isAdminPage ? 'common.skipAdmin' : isStatusPage ? 'common.skipStatus' : isAnnouncementsPage ? 'common.skipAnnouncements' : isHelpPage ? 'common.skipHelp' : 'common.skip') }}</a>
   <header class="site-header">
       <a href="/" class="brand" :aria-label="content(site?.name, locale) || t('common.siteName')">
         <span class="brand-logo"><img :src="brandLogo" alt="" width="2000" height="433" /></span>
@@ -180,9 +184,10 @@ onBeforeUnmount(() => {
   </header>
 
   <main class="page-width">
-    <p v-if="!isAdminPage && !isAnnouncementsPage && (loading || source.stale)" class="data-notice" role="status">{{ t(loading ? 'common.loading' : source.updatedAt ? 'common.stale' : 'common.unavailable') }}</p>
+    <p v-if="!isAdminPage && !isAnnouncementsPage && !isHelpPage && (loading || source.stale)" class="data-notice" role="status">{{ t(loading ? 'common.loading' : source.updatedAt ? 'common.stale' : 'common.unavailable') }}</p>
     <AdminPage v-if="isAdminPage" />
     <AnnouncementsPage v-else-if="isAnnouncementsPage" />
+    <HelpPage v-else-if="isHelpPage" :name="help.name" :invalid="help.invalid" />
     <StatusPage v-else-if="isStatusPage" ref="statusPage" :mirrors="mirrors" :now="now" :cycle="boardCycle" :show-next-sync="showNextSync" @mirror="openModal('mirror', $event)" />
     <div v-else class="main-grid">
       <section id="mirrors" class="mirror-section" tabindex="-1">
@@ -203,7 +208,7 @@ onBeforeUnmount(() => {
                 <td class="name-cell">
                   <div class="mirror-name-group">
                     <a class="mirror-name-button" :aria-label="t('mirrors.browse', { name: mirror.name })" :title="description(mirror)" :href="mirror.browseUrl">{{ mirror.name }}</a>
-                    <button v-if="mirror.help?.trim()" class="help-button" :aria-label="t('mirrors.helpFor', { name: mirror.name })" :title="t('mirrors.helpFor', { name: mirror.name })" @click="openModal('mirror', mirror)"><BookOpen :size="14" /></button>
+                    <a v-if="mirror.help?.trim()" class="help-button" :href="helpUrl(mirror.name)" :aria-label="t('mirrors.helpFor', { name: mirror.name })" :title="t('mirrors.helpFor', { name: mirror.name })"><CircleHelp :size="22" :stroke-width="1.7" aria-hidden="true" /></a>
                   </div>
                 </td>
                 <td class="time-cell" :title="fullTime(showNextSync ? mirror.nextSync : mirror.lastSuccess)"><RollingText :value="showNextSync ? tableNextTime(mirror) : relativeTime(mirror.lastSuccess)" :cycle="boardCycle" :candidates="timeCandidates" :reserve="[relativeTime(mirror.lastSuccess), tableNextTime(mirror)]" /></td>
@@ -232,7 +237,7 @@ onBeforeUnmount(() => {
         <section v-if="site?.relatedLinks?.length" class="side-section useful-links">
           <div class="side-heading"><h2>{{ t('announcements.links') }}</h2></div>
           <template v-for="(link, index) in site.relatedLinks" :key="index">
-            <button v-if="link.kind === 'help'" @click="openModal('help')">{{ content(link.title, locale) }}</button>
+            <a v-if="link.kind === 'help'" href="/help/">{{ content(link.title, locale) }}</a>
             <a v-else :href="link.url" :target="link.url.startsWith('/') ? undefined : '_blank'" rel="noopener noreferrer">{{ content(link.title, locale) }}</a>
           </template>
         </section>
@@ -281,8 +286,7 @@ onBeforeUnmount(() => {
   <dialog id="content-dialog" ref="dialog" class="content-dialog" :class="{ 'download-dialog': modal === 'downloads' }" aria-labelledby="dialog-title" @close="onDialogClose" @click="($event.target === $event.currentTarget) && closeModal()">
     <div class="dialog-inner"><div class="dialog-heading"><h2 id="dialog-title">{{ modalTitle }}</h2><button class="icon-button" :aria-label="t('common.close')" autofocus @click="closeModal"><X :size="21" /></button></div>
       <div class="dialog-content">
-        <template v-if="modal === 'mirror' && selectedMirror"><p class="dialog-lead">{{ description(selectedMirror) }}</p><div class="mirror-facts"><span>{{ t('mirrors.columns.status') }}</span><span>{{ t(`mirrors.status.${selectedMirror.status}`) }}</span><span>{{ t('mirrors.columns.updated') }}</span><span>{{ relativeTime(selectedMirror.lastSuccess) }}</span><span>{{ t('mirrors.columns.next') }}</span><span>{{ nextLabel(selectedMirror) }}</span></div><MarkdownContent v-if="selectedMirror.help" :source="selectedMirror.help" lang="zh-CN" /><p v-else class="dialog-hint">{{ t('common.noHelp') }}</p><div class="dialog-actions"><a class="text-button" :href="selectedMirror.browseUrl">{{ t('common.openDirectory') }}<ArrowRight :size="15" /></a><a v-if="selectedMirror.website" :href="selectedMirror.website" target="_blank" rel="noopener noreferrer" class="text-button">{{ t('mirrors.official') }}<ExternalLink :size="14" /></a></div></template>
-        <template v-else-if="modal === 'help'"><p class="dialog-lead">{{ t('mirrors.helpIntro') }}</p><div class="help-grid"><button v-for="mirror in mirrors" :key="mirror.name" @click="openModal('mirror', mirror)"><span class="distro-mark" :style="{ '--distro-color': mirror.color }" aria-hidden="true">{{ mirror.mark }}</span><span>{{ mirror.name }}</span><ArrowRight :size="15" /></button></div></template>
+        <template v-if="modal === 'mirror' && selectedMirror"><p class="dialog-lead">{{ description(selectedMirror) }}</p><div class="mirror-facts"><span>{{ t('mirrors.columns.status') }}</span><span>{{ t(`mirrors.status.${selectedMirror.status}`) }}</span><span>{{ t('mirrors.columns.updated') }}</span><span>{{ relativeTime(selectedMirror.lastSuccess) }}</span><span>{{ t('mirrors.columns.next') }}</span><span>{{ nextLabel(selectedMirror) }}</span></div><div class="dialog-actions"><a v-if="selectedMirror.help?.trim()" class="text-button" :href="helpUrl(selectedMirror.name)">{{ t('mirrors.helpTitle') }}<CircleHelp :size="18" /></a><a class="text-button" :href="selectedMirror.browseUrl">{{ t('common.openDirectory') }}<ArrowRight :size="15" /></a><a v-if="selectedMirror.website" :href="selectedMirror.website" target="_blank" rel="noopener noreferrer" class="text-button">{{ t('mirrors.official') }}<ExternalLink :size="14" /></a></div></template>
         <DownloadList v-else-if="modal === 'downloads'" :items="distributions" />
         <template v-else-if="modal === 'about'"><img class="about-seal" :src="site?.avatar || '/assets/ouc-seal.png'" alt="" width="80" height="80" /><p class="article-body">{{ t('common.aboutBody') }}</p><div class="about-links"><a href="https://www.itouc.cn/" target="_blank" rel="noopener noreferrer">{{ t('common.studio') }}<ArrowUpRight :size="15" /></a><a href="https://github.com/tuna/tunasync" target="_blank" rel="noopener noreferrer">{{ t('common.source') }} · tunasync<ArrowUpRight :size="15" /></a></div></template>
       </div>

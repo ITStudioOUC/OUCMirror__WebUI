@@ -1,9 +1,9 @@
 <script setup lang="ts">
 import { computed } from 'vue'
-import { marked } from 'marked'
+import { marked, type TokensList } from 'marked'
 import DOMPurify from 'dompurify'
-const props = defineProps<{ source: string }>()
-const html = computed(() => DOMPurify.sanitize(marked.parse(props.source, { async: false, breaks: false }), {
+const props = defineProps<{ source?: string; tokens?: TokensList }>()
+const html = computed(() => DOMPurify.sanitize(props.tokens ? marked.parser(props.tokens) : marked.parse(props.source || '', { async: false, breaks: false }), {
   ALLOWED_TAGS: ['p', 'br', 'hr', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'strong', 'em', 'del', 'blockquote', 'pre', 'code', 'ul', 'ol', 'li', 'a', 'table', 'thead', 'tbody', 'tr', 'th', 'td', 'img'],
   ALLOWED_ATTR: ['href', 'src', 'alt', 'title', 'start'],
   ALLOW_DATA_ATTR: false,

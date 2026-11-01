@@ -10,6 +10,8 @@ export interface SiteSettings {
 }
 export interface AnnouncementContent { title: string; body: string; published: boolean; pinned: boolean; date: string }
 export interface MirrorMetadata { name: string; description: Localized; help: string; category: string; visible: boolean; website: string }
+export interface HelpSummary { name: string; description: Localized; website: string; browseUrl: string }
+export interface HelpArticle extends HelpSummary { body: string }
 export interface ContentRecord<T> { id: string; data: T; revision: number; updatedAt: number }
 export interface AdminSession { username: string; role: 'admin' | 'editor'; csrf: string }
 export interface SyncJob { name: string; worker: string; status: string; last_update: string; last_started: string; last_ended: string; next_schedule: string; upstream: string; size: string; error_msg: string }

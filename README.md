@@ -47,6 +47,14 @@ go -C backend build -o ../.local/mirrorouc .
 
 默认监听 `127.0.0.1:8081`，可通过 `-listen` 修改。首页为 `/`，公告页为 `/announcements`，管理后台为 `/admin`，同步状态页为 `/status`。数据库与上传文件保存在 `data/`，更新时保留该目录。
 
+镜像使用帮助位于 `/help/<源名>/`，在后台“镜像与任务”的“展示信息”中使用 Markdown 编辑。所有界面语言使用同一份中文帮助文章；未填写文章的镜像不显示帮助按钮。
+
+帮助正文可插入交互式 Debian 配置块，`format` 使用 `list`（传统格式）或 `deb822`：
+
+```mirror-config
+{"type":"debian","format":"list"}
+```
+
 镜像目录与下载由已有的 Web 服务器提供，路径为 `/mirrors/<源名>/`。自定义目录页的 Fancyindex 模板随前端构建生成在 `dist/fancy-index/` 中。
 
 需要本机监控采集或受限配置写入时，可按需对接 `backend/tools/` 中的工具。更多启动参数可通过 `./mirrorouc -help` 查看。

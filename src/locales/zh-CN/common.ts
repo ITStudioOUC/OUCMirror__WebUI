@@ -1,4 +1,5 @@
 export default {
+  skipHelp: '跳转到镜像使用帮助',
   skipAdmin: '跳转到站点管理',
   skipAnnouncements: '跳转到站点公告',
   loading: '正在加载镜像数据…',

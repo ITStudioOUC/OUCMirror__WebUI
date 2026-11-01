@@ -106,7 +106,10 @@ h2 { margin: 0; font-size: 19px; font-weight: 600; letter-spacing: -.04em; }
 .status-list > div[data-status='failed'] { background: var(--red-soft); }
 .mirror-table :is(.time-cell, .metric-cell) { font-variant-numeric: tabular-nums; }
 .mirror-table .roll-frame { display: grid; width: 100%; max-width: 100%; }
-.help-button { display: inline-flex; align-items: center; justify-content: center; width: 26px; height: 26px; border-radius: 5px; color: var(--ink-3); }.help-button:hover { color: var(--blue); background: var(--blue-soft); }
+.help-button { display: inline-flex; flex: 0 0 auto; align-items: center; justify-content: center; width: 28px; height: 28px; border: 0; border-radius: 50%; background: transparent; color: var(--blue); transition: color 120ms, background-color 120ms; }
+.help-button svg { display: block; }
+.help-button:hover { background: var(--blue-soft); color: var(--accent-hover); }
+.help-button:focus-visible { outline: 2px solid var(--blue); outline-offset: 2px; }
 .roll-frame { display: inline-grid; min-width: 0; max-width: 100%; vertical-align: middle; line-height: 1.5; }
 .roll-stage { position: relative; display: grid; min-width: 0; overflow: hidden; }
 .roll-sizer { grid-area: 1 / 1; min-width: 0; visibility: hidden; white-space: nowrap; overflow: hidden; }
@@ -225,7 +228,8 @@ h2 { margin: 0; font-size: 19px; font-weight: 600; letter-spacing: -.04em; }
   .mirror-table th:first-child { width: 44%; }
   .mirror-table th:nth-child(2), .mirror-table th:nth-child(3) { width: 28%; }
   .mirror-name-button { min-height: 44px; font-size: 14px; }
-  .mirror-name-group .help-button { display: none; }
+  .mirror-name-group { gap: 4px; }
+  .mirror-name-group .help-button { width: 32px; height: 32px; }
   .mirror-table .time-cell { line-height: 1.5; }
   .sidebar { display: flex; align-items: stretch; gap: 20px; }
   .side-heading { margin-bottom: 6px; }

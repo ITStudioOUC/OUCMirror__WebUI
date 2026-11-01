@@ -4,8 +4,10 @@ import { useI18n } from 'vue-i18n'
 import { api, ApiError, jsonBody, setSession, type AdminSession, type AdminUser, type AnnouncementContent, type AuditPage, type ConfigVersion, type ContentRecord, type MirrorMetadata, type Overview, type SiteSettings, type SyncConfig, type SyncConfigMirror, type SyncJob } from '../api'
 import { supportedLocales } from '../locales'
 import { announcementUrl } from '../announcements'
+import { helpUrl } from '../help'
 import MarkdownContent from './MarkdownContent.vue'
 import DownloadCatalogEditor from './DownloadCatalogEditor.vue'
+import MirrorHelpContent from './MirrorHelpContent.vue'
 
 const { t, te, d, n } = useI18n({ useScope: 'global' })
 const session = ref<AdminSession | null>(null)
@@ -33,6 +35,7 @@ const articlePublished = computed(() => articlesEditor.value?.data.published ?? 
 const sortedArticles = computed(() => [...articles.value].sort((a, b) => Number(b.data.pinned) - Number(a.data.pinned) || Date.parse(b.data.date) - Date.parse(a.data.date)))
 const articleDate = computed(() => articlesEditor.value?.data.date ? new Intl.DateTimeFormat('en-CA', { year: 'numeric', month: '2-digit', day: '2-digit', timeZone: 'Asia/Shanghai' }).format(new Date(articlesEditor.value.data.date)) : '')
 const mirrorEditor = ref<ContentRecord<MirrorMetadata> | null>(null)
+const publishedMirrorHelp = computed(() => metadata.value.some(row => row.id === mirrorEditor.value?.id && row.data.visible && row.data.help?.trim()))
 const editLocale = ref('zh-CN')
 const logs = ref<{ name: string; text: string } | null>(null)
 const config = ref<SyncConfig | null>(null)
@@ -206,7 +209,18 @@ onBeforeUnmount(() => clearInterval(poll))
       <template v-if="tab === 'mirrors'">
         <input v-model="search" class="admin-search" type="search" :placeholder="t('admin.search')" :aria-label="t('admin.search')" />
         <div class="admin-table-wrap jobs-table"><table><thead><tr><th>{{ t('admin.name') }}</th><th>{{ t('admin.status') }}</th><th>{{ t('admin.size') }}</th><th>{{ t('admin.actions') }}</th></tr></thead><tbody><tr v-for="job in jobs" :key="job.name" :data-status="jobStatus(job.status)"><th>{{ job.name }}</th><td>{{ t(`mirrors.status.${jobStatus(job.status)}`) }}</td><td>{{ jobSize(job.size) }}</td><td><div class="row-actions"><button @click="editMirror(job)">{{ t('admin.edit') }}</button><button :disabled="busy" @click="run(() => showLogs(job.name))">{{ t('admin.logs') }}</button><button v-for="action in ['start','stop','restart','disable']" :key="action" :disabled="busy" @click="command(job, action)">{{ t(`admin.${action}`) }}</button></div></td></tr></tbody></table></div>
-        <form v-if="mirrorEditor" class="admin-editor admin-form" @submit.prevent="run(saveMirror)"><div class="admin-toolbar"><h3>{{ mirrorEditor.id }} · {{ t('admin.metadata') }}</h3><button type="button" @click="mirrorEditor = null">{{ t('admin.close') }}</button></div><label>{{ t('admin.descriptionLanguage') }}<select v-model="editLocale"><option v-for="language in supportedLocales" :key="language" :value="language">{{ t('common.languageName', {}, { locale: language }) }}</option></select></label><label>{{ t('admin.description') }}<textarea v-model="mirrorEditor.data.description[editLocale]" rows="2" /></label><label>{{ t('admin.helpChinese') }}<textarea v-model="mirrorEditor.data.help" lang="zh-CN" rows="10" /></label><MarkdownContent :source="mirrorEditor.data.help" lang="zh-CN" /><label>{{ t('admin.website') }}<input v-model="mirrorEditor.data.website" type="url" /></label><label>{{ t('admin.category') }}<select v-model="mirrorEditor.data.category"><option v-for="value in ['os','language','other']" :key="value" :value="value">{{ t(`admin.${value}`) }}</option></select></label><label class="check"><input v-model="mirrorEditor.data.visible" type="checkbox" />{{ t('admin.visible') }}</label><button class="primary" :disabled="busy">{{ t('admin.save') }}</button></form>
+        <form v-if="mirrorEditor" class="admin-editor admin-form" @submit.prevent="run(saveMirror)">
+          <div class="admin-toolbar"><h3>{{ mirrorEditor.id }} · {{ t('admin.metadata') }}</h3><button type="button" @click="mirrorEditor = null">{{ t('admin.close') }}</button></div>
+          <label>{{ t('admin.descriptionLanguage') }}<select v-model="editLocale"><option v-for="language in supportedLocales" :key="language" :value="language">{{ t('common.languageName', {}, { locale: language }) }}</option></select></label>
+          <label>{{ t('admin.description') }}<textarea v-model="mirrorEditor.data.description[editLocale]" rows="2" /></label>
+          <label>{{ t('admin.helpChinese') }}<textarea v-model="mirrorEditor.data.help" lang="zh-CN" rows="14" /></label>
+          <details v-if="mirrorEditor.data.help.trim()" class="mirror-help-preview"><summary>{{ t('admin.preview') }}</summary><MirrorHelpContent :source="mirrorEditor.data.help" /></details>
+          <a v-if="publishedMirrorHelp" class="admin-public-link" :href="helpUrl(mirrorEditor.id)" target="_blank" rel="noopener noreferrer">{{ t('admin.viewHelp') }}</a>
+          <label>{{ t('admin.website') }}<input v-model="mirrorEditor.data.website" type="url" /></label>
+          <label>{{ t('admin.category') }}<select v-model="mirrorEditor.data.category"><option v-for="value in ['os','language','other']" :key="value" :value="value">{{ t(`admin.${value}`) }}</option></select></label>
+          <label class="check"><input v-model="mirrorEditor.data.visible" type="checkbox" />{{ t('admin.visible') }}</label>
+          <button class="primary" :disabled="busy">{{ t('admin.save') }}</button>
+        </form>
         <section v-if="logs" class="admin-editor"><div class="admin-toolbar"><h3>{{ logs.name }} · {{ t('admin.logs') }}</h3><div class="admin-actions"><button :disabled="busy" @click="run(() => showLogs(logs!.name))">{{ t('admin.refresh') }}</button><button @click="logs = null">{{ t('admin.close') }}</button></div></div><p>{{ t('admin.logTail') }}</p><pre class="admin-log">{{ logs.text }}</pre></section>
       </template>
       <template v-if="tab === 'announcements'">

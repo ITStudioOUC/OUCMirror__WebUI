@@ -12,6 +12,8 @@
     "preview": "vite preview --host 127.0.0.1",
     "check:i18n": "node scripts/check-locales.ts",
     "check:monitoring": "node scripts/check-monitoring.ts",
+    "check:help": "node scripts/check-help.ts",
+    "check:debian": "node scripts/check-debian-sources.ts",
     "check:directory": "node scripts/check-directory.ts"
   },
   "dependencies": {
