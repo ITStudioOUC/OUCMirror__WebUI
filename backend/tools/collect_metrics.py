@@ -32,7 +32,7 @@ try:
     result = subprocess.run(['/usr/sbin/nft', '-j', 'list', 'counters', 'table', 'inet', 'mirrorouc_monitor'], capture_output=True, timeout=4, check=True)
     for item in json.loads(result.stdout).get('nftables', []):
         counter = item.get('counter', {})
-        if counter.get('name') in ('https4', 'https6', 'rsync4', 'rsync6'):
+        if counter.get('name') in ('http4', 'http6', 'rsync4', 'rsync6'):
             counters[counter['name']] = counter['bytes']
 except (OSError, ValueError, subprocess.SubprocessError):
     pass

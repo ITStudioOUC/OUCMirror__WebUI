@@ -25,7 +25,7 @@ export default {
     cpu: 'CPU usage', memory: 'Memory usage',
   },
   series: {
-    https: 'HTTPS', rsync: 'rsync',
+    http: 'HTTP/S', rsync: 'rsync',
     read: 'Read', write: 'Write',
     user: 'User', system: 'System', wait: 'I/O wait', idle: 'Idle',
     used: 'Used', cached: 'Cached', buffers: 'Buffers', free: 'Free',

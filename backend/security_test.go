@@ -50,7 +50,7 @@ func TestMonitoringUsesRawStatistics(t *testing.T) {
 		if index == 1 {
 			value = 200
 		}
-		history.Samples = append(history.Samples, map[string]float64{"time": float64(time.Now().Add(time.Duration(index-500) * time.Second).UnixMilli()), "https4": value, "rsync4": 0})
+		history.Samples = append(history.Samples, map[string]float64{"time": float64(time.Now().Add(time.Duration(index-500) * time.Second).UnixMilli()), "http4": value, "rsync4": 0})
 	}
 	raw, _ := json.Marshal(history)
 	path := filepath.Join(t.TempDir(), "history.json")

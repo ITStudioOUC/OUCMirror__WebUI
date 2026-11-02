@@ -159,8 +159,8 @@ func (a *App) monitoring(w http.ResponseWriter, r *http.Request) {
 		return metricPanel{id, "monitor.charts." + id, unit, maximum, stacked, completePoints > 1, series}
 	}
 	panels := []metricPanel{
-		panel("ipv4", "gigabits", 0, true, makeSeries("https4", "https", "blue"), makeSeries("rsync4", "rsync", "violet")),
-		panel("ipv6", "gigabits", 0, true, makeSeries("https6", "https", "blue"), makeSeries("rsync6", "rsync", "violet")),
+		panel("ipv4", "gigabits", 0, false, makeSeries("http4", "http", "blue"), makeSeries("rsync4", "rsync", "violet")),
+		panel("ipv6", "gigabits", 0, false, makeSeries("http6", "http", "blue"), makeSeries("rsync6", "rsync", "violet")),
 		panel("iops", "operations", 0, false, makeSeries("readOps", "read", "green"), makeSeries("writeOps", "write", "amber")),
 		panel("throughput", "gigabytes", 0, false, makeSeries("readBytes", "read", "blue"), makeSeries("writeBytes", "write", "violet")),
 		panel("cpu", "percent", 100, true, makeSeries("user", "user", "blue"), makeSeries("system", "system", "green"), makeSeries("wait", "wait", "amber"), makeSeries("idle", "idle", "chart-muted")),

@@ -84,9 +84,9 @@ export function createMonitoringSnapshot(end: number, hours: MonitoringRange): M
     const cached = 22 + n(13, 600) * 3
     const buffers = 2 + n(14, 600)
     return {
-      https4: 1.4 + activity * 4 + n(2) * 1.1,
+      http4: 1.4 + activity * 4 + n(2) * 1.1,
       rsync4: .2 + activity * .6 + Math.pow(n(3), 3) * .9,
-      https6: .4 + activity * 1.4 + n(5) * .4,
+      http6: .4 + activity * 1.4 + n(5) * .4,
       rsync6: .1 + activity * .3 + Math.pow(n(6), 3) * .4,
       readOps: 8 + activity * 34 + n(7) * 10,
       writeOps: .5 + n(8) * 1.5 + Math.pow(n(15, 45), 12) * 15,
@@ -104,8 +104,8 @@ export function createMonitoringSnapshot(end: number, hours: MonitoringRange): M
     id, titleKey: `monitor.charts.${id}`, unit, maximum, stacked, series,
   })
   return { timestamps, panels: [
-    panel('ipv4', 'gigabits', 10, true, [series('https4', 'https', 'blue'), series('rsync4', 'rsync', 'violet')]),
-    panel('ipv6', 'gigabits', 4, true, [series('https6', 'https', 'blue'), series('rsync6', 'rsync', 'violet')]),
+    panel('ipv4', 'gigabits', 10, false, [series('http4', 'http', 'blue'), series('rsync4', 'rsync', 'violet')]),
+    panel('ipv6', 'gigabits', 4, false, [series('http6', 'http', 'blue'), series('rsync6', 'rsync', 'violet')]),
     panel('iops', 'operations', 60, false, [series('readOps', 'read', 'green'), series('writeOps', 'write', 'amber')]),
     panel('throughput', 'gigabytes', 3, false, [series('readBytes', 'read', 'blue'), series('writeBytes', 'write', 'violet')]),
     panel('cpu', 'percent', 100, true, [series('user', 'user', 'blue'), series('system', 'system', 'green'), series('wait', 'wait', 'amber'), series('idle', 'idle', 'chart-muted')]),

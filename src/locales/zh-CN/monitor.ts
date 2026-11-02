@@ -25,7 +25,7 @@ export default {
     cpu: 'CPU 使用率', memory: '内存使用情况',
   },
   series: {
-    https: 'HTTPS', rsync: 'rsync',
+    http: 'HTTP/S', rsync: 'rsync',
     read: '读取', write: '写入',
     user: '用户', system: '系统', wait: 'I/O 等待', idle: '空闲',
     used: '已使用', cached: '缓存', buffers: '缓冲区', free: '空闲',
