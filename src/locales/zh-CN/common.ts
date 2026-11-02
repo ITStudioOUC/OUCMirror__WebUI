@@ -38,7 +38,7 @@ export default {
   "copyFailed": "复制失败，请手动选择并复制",
   "external": "在新窗口中打开",
   "preview": "界面预览 · 演示数据",
-  "footer": "中国海洋大学软件镜像源（MirrorOUC）由中国海洋大学爱特工作室承建。",
+  "footer": "爱特开源软件镜像源（MirrorITS）由中国海洋大学爱特工作室开发部署",
   "studio": "爱特工作室",
   "source": "同步引擎",
   "aboutTitle": "关于 MirrorOUC",

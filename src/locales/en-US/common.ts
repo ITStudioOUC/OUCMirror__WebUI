@@ -42,7 +42,7 @@ export default {
   "studio": "IT Studio",
   "source": "Sync engine",
   "aboutTitle": "About MirrorOUC",
-  "aboutBody": "Built by IT Studio at Ocean University of China, MirrorOUC aims to make open-source software accessible to users on and beyond campus.",
+  "aboutBody": "Open-source software mirror of ITStudio, developed by ITStudio at Ocean University of China.",
   "previewBody": "This is an interface prototype. Mirrors and sync jobs use demo data and are not connected to the mirror server. Mirror directories, configuration addresses and downloads will be available after integration.",
   "emptyValue": "—",
   "footerLinks": "Related sites",
