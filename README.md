@@ -57,4 +57,6 @@ go -C backend build -o ../.local/mirrorouc .
 
 镜像目录与下载由已有的 Web 服务器提供，路径为 `/mirrors/<源名>/`。自定义目录页的 Fancyindex 模板随前端构建生成在 `dist/fancy-index/` 中。
 
+构建还会生成 `dist/errors/` 下的独立错误页。后端自动使用这些页面；使用 Nginx 时，可将其错误页指向对应文件，并保留 API 错误的 JSON 响应。
+
 需要本机监控采集或受限配置写入时，可按需对接 `backend/tools/` 中的工具。更多启动参数可通过 `./mirrorouc -help` 查看。

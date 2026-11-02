@@ -131,15 +131,15 @@ func (a *App) handler() http.Handler {
 	mux.HandleFunc("GET /uploads/{name}", func(w http.ResponseWriter, r *http.Request) {
 		name := r.PathValue("name")
 		if !validName(name) || (!strings.HasSuffix(name, ".png") && !strings.HasSuffix(name, ".jpg")) {
-			http.NotFound(w, r)
+			a.errorPage(w, r, http.StatusNotFound)
 			return
 		}
-		http.ServeFile(w, r, filepath.Join(a.cfg.Data, "uploads", name))
+		a.servePageFile(w, r, filepath.Join(a.cfg.Data, "uploads", name))
 	})
 	mux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 		if r.Method != "GET" && r.Method != "HEAD" {
 			w.Header().Set("Allow", "GET, HEAD")
-			fail(w, 405, "METHOD_NOT_ALLOWED")
+			a.errorPage(w, r, http.StatusMethodNotAllowed)
 			return
 		}
 		path := r.URL.Path
@@ -148,20 +148,29 @@ func (a *App) handler() http.Handler {
 			return
 		}
 		if path == "/" || path == "/status" || path == "/status/" || path == "/announcements" || path == "/announcements/" || path == "/admin" || strings.HasPrefix(path, "/admin/") {
-			http.ServeFile(w, r, filepath.Join(a.cfg.Static, "index.html"))
+			a.servePageFile(w, r, filepath.Join(a.cfg.Static, "index.html"))
 			return
 		}
 		if strings.HasPrefix(path, "/assets/") {
-			http.FileServer(http.Dir(a.cfg.Static)).ServeHTTP(w, r)
+			local := strings.TrimPrefix(path, "/")
+			if !filepath.IsLocal(local) || strings.ContainsAny(local, "\\\x00") {
+				a.errorPage(w, r, http.StatusNotFound)
+				return
+			}
+			a.servePageFile(w, r, filepath.Join(a.cfg.Static, local))
 			return
 		}
-		http.NotFound(w, r)
+		a.errorPage(w, r, http.StatusNotFound)
 	})
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		defer func() {
 			if v := recover(); v != nil {
 				a.logger.Printf("panic: %v", v)
-				fail(w, 500, "INTERNAL_ERROR")
+				if strings.HasPrefix(r.URL.Path, "/api/") || r.URL.Path == "/healthz" {
+					fail(w, 500, "INTERNAL_ERROR")
+				} else {
+					a.errorPage(w, r, http.StatusInternalServerError)
+				}
 			}
 		}()
 		w.Header().Set("X-Content-Type-Options", "nosniff")

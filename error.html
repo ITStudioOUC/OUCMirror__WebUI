@@ -1,0 +1,63 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="theme-color" content="#ffffff" />
+  <meta name="robots" content="noindex, nofollow" />
+  <link rel="icon" type="image/png" href="/assets/ouc-seal.png" />
+  <title>{{pageTitle}}</title>
+  <script src="/assets/directory-theme.js"></script>
+  <script defer src="{{script}}"></script>
+  <style>
+    :root { color-scheme: light; --paper: #fff; --ink: #24292f; --muted: #343a40; --blue: #0969da; --line: #d0d7de; --accent-ink: #fff; }
+    :root[data-theme='dark'] { color-scheme: dark; --paper: #0d1117; --ink: #c9d1d9; --muted: #8b949e; --blue: #58a6ff; --line: #30363d; --accent-ink: #0d1117; }
+    @media (prefers-color-scheme: dark) { :root:not([data-theme]) { color-scheme: dark; --paper: #0d1117; --ink: #c9d1d9; --muted: #8b949e; --blue: #58a6ff; --line: #30363d; --accent-ink: #0d1117; } }
+    * { box-sizing: border-box; scrollbar-width: thin; scrollbar-color: var(--blue) transparent; }
+    @supports selector(::-webkit-scrollbar) { * { scrollbar-width: auto; scrollbar-color: auto; } ::-webkit-scrollbar { width: 6px; height: 6px; } ::-webkit-scrollbar-track, ::-webkit-scrollbar-corner { background: transparent; } ::-webkit-scrollbar-thumb { border-radius: 0; background: var(--blue); } ::-webkit-scrollbar-button { display: none; } }
+    [hidden] { display: none !important; }
+    body { display: flex; flex-direction: column; min-height: 100svh; margin: 0; background: var(--paper); color: var(--ink); font-family: system-ui, -apple-system, 'Segoe UI', 'Microsoft YaHei', sans-serif; line-height: 1.7; }
+    a { color: inherit; text-decoration: none; }
+    button, select { font: inherit; color: inherit; }
+    :focus-visible { outline: 2px solid var(--blue); outline-offset: 4px; }
+    .error-header { display: flex; align-items: center; justify-content: space-between; gap: 20px; min-height: 112px; padding: 24px clamp(24px, 5vw, 120px); }
+    .error-brand { display: block; min-width: 0; width: 260px; }
+    .error-brand img { display: block; width: 100%; height: auto; }
+    .error-logo-dark { display: none !important; }
+    :root[data-theme='dark'] .error-logo-light { display: none; }
+    :root[data-theme='dark'] .error-logo-dark { display: block !important; }
+    @media (prefers-color-scheme: dark) { :root:not([data-theme]) .error-logo-light { display: none; } :root:not([data-theme]) .error-logo-dark { display: block !important; } }
+    .error-tools { display: flex; gap: 14px; flex-shrink: 0; }
+    .error-tools select { max-width: 120px; min-height: 44px; padding: 6px 4px; border: 0; border-radius: 0; background: var(--paper); font-size: 13px; cursor: pointer; }
+    .error-main { display: grid; flex: 1; grid-template-columns: auto minmax(0, 1fr); align-content: center; align-items: center; gap: 64px; width: min(940px, calc(100% - 64px)); margin: 0 auto; padding: 48px 0 120px; }
+    .error-status { margin: 0; color: var(--blue); font: 500 clamp(104px, 16vw, 176px)/1 ui-monospace, Consolas, monospace; letter-spacing: -.075em; }
+    .error-copy { min-width: 0; }
+    h1 { margin: 0 0 16px; font-size: 32px; font-weight: 600; line-height: 1.35; overflow-wrap: anywhere; }
+    .error-description { max-width: 470px; margin: 0; color: var(--muted); font-size: 16px; overflow-wrap: anywhere; }
+    .error-actions { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 30px; }
+    .error-actions a, .error-actions button { display: inline-flex; align-items: center; justify-content: center; min-height: 44px; padding: 9px 18px; border: 1px solid var(--line); border-radius: 3px; background: transparent; font-size: 14px; cursor: pointer; }
+    .error-actions a { border-color: var(--blue); background: var(--blue); color: var(--accent-ink); }
+    .error-actions :hover { filter: brightness(.9); }
+    @media (max-width: 640px) {
+      .error-header { min-height: 88px; gap: 12px; padding: 18px 16px; }
+      .error-brand { width: 180px; }
+      .error-tools { gap: 4px; }
+      .error-tools select { max-width: 96px; font-size: 12px; }
+      .error-main { grid-template-columns: minmax(0, 1fr); gap: 24px; width: calc(100% - 40px); padding: 36px 0 88px; }
+      .error-status { font-size: 112px; }
+      h1 { font-size: 28px; }
+    }
+    @media (max-width: 360px) { .error-header { padding-inline: 12px; } .error-brand { width: 148px; } .error-tools select { max-width: 82px; } }
+  </style>
+</head>
+<body data-error-status="{{status}}">
+  <header class="error-header">
+    <a class="error-brand" href="/" aria-label="{{siteName}}"><img class="error-logo-light" src="/assets/mirrorOUC_dark.png" alt="" width="2000" height="433" /><img class="error-logo-dark" src="/assets/mirrorOUC.png" alt="" width="2000" height="433" /></a>
+    <div id="error-tools" class="error-tools" hidden><select id="error-language" aria-label="{{language}}">{{languages}}</select><select id="error-theme" aria-label="{{theme}}">{{themes}}</select></div>
+  </header>
+  <main class="error-main">
+    <p class="error-status">{{status}}</p>
+    <div class="error-copy"><h1 id="error-title">{{title}}</h1><p id="error-description" class="error-description">{{description}}</p><div class="error-actions"><a id="error-home" href="/">{{home}}</a><button id="error-retry" type="button" hidden>{{retry}}</button></div></div>
+  </main>
+</body>
+</html>

@@ -1,0 +1,20 @@
+export default {
+  home: 'Back to mirrors',
+  retry: 'Reload',
+  codes: {
+    '400': { title: 'Bad request', description: 'The server could not understand this request. Check the address and try again.' },
+    '401': { title: 'Sign-in required', description: 'Please sign in to access this page.' },
+    '403': { title: 'Access denied', description: 'Access to this page or file is not allowed.' },
+    '404': { title: 'Page not found', description: 'This page or file does not exist. Check the address or return to the mirror list.' },
+    '405': { title: 'Method not allowed', description: 'This address does not support the request method used.' },
+    '408': { title: 'Request timed out', description: 'The request did not finish in time. Please try again shortly.' },
+    '410': { title: 'Content removed', description: 'This page or file is no longer available.' },
+    '413': { title: 'Request too large', description: 'The submitted content exceeds the server limit. Reduce its size and try again.' },
+    '414': { title: 'Address too long', description: 'The request address exceeds the server limit. Check it and try again.' },
+    '429': { title: 'Too many requests', description: 'Please wait a moment before trying again.' },
+    '500': { title: 'Server error', description: 'The server could not complete this request. Please try again shortly.' },
+    '502': { title: 'Gateway connection failed', description: 'The site service could not be reached. Please try again shortly.' },
+    '503': { title: 'Service unavailable', description: 'The site is under maintenance or temporarily busy. Please try again shortly.' },
+    '504': { title: 'Service timed out', description: 'The site service did not respond in time. Please try again shortly.' },
+  },
+}

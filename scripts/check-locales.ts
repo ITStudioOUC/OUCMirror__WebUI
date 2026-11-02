@@ -12,6 +12,8 @@ import { createI18n } from 'vue-i18n'
 import { adminZh, adminEn } from '../src/locales/admin-messages.ts'
 import directoryZh from '../src/locales/zh-CN/directory.ts'
 import directoryEn from '../src/locales/en-US/directory.ts'
+import errorsZh from '../src/locales/zh-CN/errors.ts'
+import errorsEn from '../src/locales/en-US/errors.ts'
 
 function flatten(value: Record<string, unknown>, prefix = ''): Record<string, string> {
   return Object.fromEntries(Object.entries(value).flatMap(([key, entry]) => {
@@ -20,8 +22,8 @@ function flatten(value: Record<string, unknown>, prefix = ''): Record<string, st
   }))
 }
 
-const zh = flatten({ common: commonZh, mirrors: mirrorsZh, announcements: announcementsZh, monitor: monitorZh, admin: adminZh, directory: directoryZh })
-const en = flatten({ common: commonEn, mirrors: mirrorsEn, announcements: announcementsEn, monitor: monitorEn, admin: adminEn, directory: directoryEn })
+const zh = flatten({ common: commonZh, mirrors: mirrorsZh, announcements: announcementsZh, monitor: monitorZh, admin: adminZh, directory: directoryZh, errors: errorsZh })
+const en = flatten({ common: commonEn, mirrors: mirrorsEn, announcements: announcementsEn, monitor: monitorEn, admin: adminEn, directory: directoryEn, errors: errorsEn })
 const errors: string[] = []
 const formats = {
   'zh-CN': { datetimeFormats: datetimeZh, numberFormats: numbersZh },
