@@ -19,6 +19,7 @@ export default {
   "nav": {
     "mirrors": "Mirrors",
     "news": "Announcements",
+    "clubNews": "Club News",
     "status": "Status",
     "feedback": "ISSUE"
   },

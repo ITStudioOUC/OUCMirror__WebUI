@@ -19,6 +19,7 @@ export default {
   "nav": {
     "mirrors": "镜像列表",
     "news": "公告",
+    "clubNews": "社团新闻",
     "status": "站点状态",
     "feedback": "问题反馈"
   },

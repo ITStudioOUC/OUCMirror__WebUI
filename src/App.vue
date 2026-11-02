@@ -48,6 +48,7 @@ const isHelpPage = help.active
 const navigation = [
   { key: 'mirrors', href: '/', active: !isStatusPage && !isAdminPage && !isAnnouncementsPage },
   { key: 'news', href: '/announcements', active: isAnnouncementsPage },
+  { key: 'clubNews', href: 'https://www.itouc.cn/news/', active: false },
   { key: 'status', href: '/status', active: isStatusPage },
   { key: 'feedback', href: 'https://git.itouc.cn/ITStudio_OUC/OUCMirror-WebUI/issues', active: false },
 ]

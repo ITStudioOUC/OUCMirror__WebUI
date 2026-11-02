@@ -7,7 +7,7 @@ const t = (key: string) => i18n.global.t(key)
 const escape = (value: string) => value.replace(/[&<>"']/g, char => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[char]!)
 const text = (key: string) => `<span data-i18n="${key}">${escape(t(key))}</span>`
 const navigation = [
-  ['mirrors', '/'], ['news', '/announcements'], ['status', '/status'],
+  ['mirrors', '/'], ['news', '/announcements'], ['clubNews', 'https://www.itouc.cn/news/'], ['status', '/status'],
   ['feedback', 'https://git.itouc.cn/ITStudio_OUC/OUCMirror-WebUI/issues'],
 ].map(([key, href]) => `<a class="nav-link${key === 'mirrors' ? ' active' : ''}" href="${href}">${text(`common.nav.${key}`)}</a>`).join('')
 const languages = Object.entries(directoryMessages).map(([locale, messages]) => `<button class="language-option" data-locale="${locale}" lang="${locale}">${escape(messages.common.languageName)}</button>`).join('')
