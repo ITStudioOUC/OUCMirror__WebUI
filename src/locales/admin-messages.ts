@@ -1,9 +1,9 @@
 const pairs = {
   viewHelp: ['查看帮助页', 'View usage guide'],
   downloadProjects: ['软件项目', 'Software projects'], addDownloadProject: ['添加软件', 'Add software'], removeDownloadProject: ['移除软件', 'Remove software'], softwareName: ['软件名称', 'Software name'],
-  downloadDescription: ['软件说明（中文，Markdown）', 'Description (Chinese, Markdown)'], downloadFiles: ['下载链接', 'Download links'], downloadLabel: ['链接名称（版本 / 架构）', 'Link label (version / architecture)'], addDownloadFile: ['添加下载链接', 'Add download link'], saveDownloads: ['保存下载配置', 'Save download catalog'],
-  downloadFileEntry: ['下载链接 {index}', 'Download link {index}'], downloadProjectCount: ['共 {count} 个软件', '{count} projects'], unnamedDownload: ['未命名软件 {index}', 'Untitled project {index}'], noDownloadProjects: ['暂无软件，点击“添加软件”开始配置。', 'No projects yet. Select “Add software” to get started.'],
-  downloadUrlPlaceholder: ['https:// 或 /mirrors/ 开头的地址', 'https:// URL or /mirrors/ path'], incompleteDownload: ['请填写软件名称，并为每个软件添加至少一条完整的下载链接。', 'Enter a software name and at least one complete download link for each project.'],
+  downloadDescription: ['软件文章（中文，Markdown）', 'Article (Chinese, Markdown)'], saveDownloads: ['保存下载配置', 'Save download catalog'],
+  downloadProjectCount: ['共 {count} 个软件', '{count} projects'], unnamedDownload: ['未命名软件 {index}', 'Untitled project {index}'], noDownloadProjects: ['暂无软件，点击“添加软件”开始配置。', 'No projects yet. Select “Add software” to get started.'],
+  incompleteDownload: ['请填写软件名称和文章内容。', 'Enter a software name and article content for each project.'],
   editArticle: ['编辑公告', 'Edit announcement'], write: ['编辑', 'Write'], articleView: ['公告编辑视图', 'Announcement editor view'], previewEmpty: ['输入 Markdown 正文后在这里预览。', 'Write Markdown to preview your announcement here.'],
   saveDraft: ['保存草稿', 'Save draft'], publishArticle: ['发布公告', 'Publish announcement'], updateArticle: ['更新公告', 'Update announcement'], withdrawArticle: ['撤回为草稿', 'Unpublish as draft'], viewArticle: ['查看公告', 'View announcement'], viewAnnouncements: ['打开公告页', 'Open announcements'],
   draftSaved: ['草稿已保存，尚未公开。', 'Draft saved. It is not public.'], articlePublished: ['公告已发布。', 'Announcement published.'], articleUpdated: ['公告已更新。', 'Announcement updated.'], articleWithdrawn: ['公告已撤回并保存为草稿。', 'Announcement unpublished and saved as a draft.'],

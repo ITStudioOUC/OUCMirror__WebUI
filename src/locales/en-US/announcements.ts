@@ -15,7 +15,6 @@ export default {
   "newsIntro": "These announcements describe the interface preview.",
   "downloadsTitle": "Downloads",
   "chooseSoftware": "Choose software",
-  "downloadLinks": "Download links",
   "downloadName": "Name",
   "downloadVersion": "Version",
   "downloadAction": "Download",

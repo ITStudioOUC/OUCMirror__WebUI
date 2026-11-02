@@ -13,14 +13,14 @@ type RelatedLink struct {
 	URL   string    `json:"url"`
 }
 type Download struct {
-	ID          string         `json:"id"`
-	Name        string         `json:"name"`
-	Category    string         `json:"category"`
-	Description string         `json:"description"`
-	Files       []DownloadFile `json:"files"`
+	ID          string `json:"id"`
+	Name        string `json:"name"`
+	Category    string `json:"category"`
+	Description string `json:"description"`
 	// Read old settings and submissions without losing existing download links.
-	Version string `json:"version,omitempty"`
-	URL     string `json:"url,omitempty"`
+	Files   []DownloadFile `json:"files,omitempty"`
+	Version string         `json:"version,omitempty"`
+	URL     string         `json:"url,omitempty"`
 }
 type DownloadFile struct {
 	Label string `json:"label"`

@@ -2,8 +2,7 @@ export type Localized = Record<string, string>
 export interface SiteLink { title: Localized; url: string }
 export interface RelatedLink extends SiteLink { kind: 'url' | 'help' }
 export type DownloadCategory = 'os' | 'software' | 'fonts'
-export interface DownloadFile { label: string; url: string }
-export interface SiteDownload { id: string; name: string; category: DownloadCategory; description: string; files: DownloadFile[] }
+export interface SiteDownload { id: string; name: string; category: DownloadCategory; description: string }
 export interface SiteSettings {
   name: Localized; description: Localized; logoLight: string; logoDark: string; favicon: string; avatar: string
   email: string; address: Localized; links: SiteLink[]; relatedLinks: RelatedLink[]; downloads: SiteDownload[]

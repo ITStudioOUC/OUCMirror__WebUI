@@ -3,6 +3,7 @@ package main
 import (
 	"crypto/sha256"
 	"fmt"
+	"html"
 	"strings"
 )
 
@@ -29,6 +30,38 @@ func normalizeDownloads(input []Download) []Download {
 			output = append(output, item)
 		}
 	}
+	for index, item := range output {
+		if len(item.Files) == 0 || len(item.Files) > 100 {
+			continue
+		}
+		valid := true
+		for _, file := range item.Files {
+			if strings.TrimSpace(file.Label) == "" || len(file.Label) > 500 || !navigationURL(file.URL) {
+				valid = false
+				break
+			}
+		}
+		if !valid {
+			continue // Keep invalid legacy fields so writes are rejected rather than silently dropping them.
+		}
+		links := make([]string, 0, len(item.Files))
+		for _, file := range item.Files {
+			label := strings.NewReplacer("\\", "\\\\", "[", "\\[", "]", "\\]", "\r", " ", "\n", " ").Replace(html.EscapeString(file.Label))
+			url := strings.NewReplacer("<", "%3C", ">", "%3E", "\\", "%5C", " ", "%20").Replace(file.URL)
+			if strings.Contains(item.Description, "]("+file.URL+")") || strings.Contains(item.Description, "](<"+file.URL+">)") || strings.Contains(item.Description, "]("+url+")") || strings.Contains(item.Description, "](<"+url+">)") {
+				continue
+			}
+			links = append(links, fmt.Sprintf("- [%s](<%s>)", label, url))
+		}
+		if len(links) > 0 {
+			if item.Description != "" {
+				item.Description += "\n\n"
+			}
+			item.Description += strings.Join(links, "\n")
+		}
+		item.Files = nil
+		output[index] = item
+	}
 	return output
 }
 
@@ -38,18 +71,13 @@ func validDownloads(items []Download) bool {
 	}
 	ids := map[string]bool{}
 	for _, item := range items {
-		if !validName(item.ID) || ids[item.ID] || strings.TrimSpace(item.Name) == "" || len(item.Name) > 300 || len(item.Description) > 100000 || len(item.Files) < 1 || len(item.Files) > 100 || item.Version != "" || item.URL != "" {
+		if !validName(item.ID) || ids[item.ID] || strings.TrimSpace(item.Name) == "" || len(item.Name) > 300 || strings.TrimSpace(item.Description) == "" || len(item.Description) > 100000 || len(item.Files) != 0 || item.Version != "" || item.URL != "" {
 			return false
 		}
 		if item.Category != "os" && item.Category != "software" && item.Category != "fonts" {
 			return false
 		}
 		ids[item.ID] = true
-		for _, file := range item.Files {
-			if strings.TrimSpace(file.Label) == "" || len(file.Label) > 500 || !navigationURL(file.URL) {
-				return false
-			}
-		}
 	}
 	return true
 }

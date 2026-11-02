@@ -15,7 +15,6 @@ export default {
   "newsIntro": "以下为界面预览公告。",
   "downloadsTitle": "常用下载",
   "chooseSoftware": "选择软件",
-  "downloadLinks": "下载链接",
   "downloadName": "名称",
   "downloadVersion": "版本",
   "downloadAction": "下载",

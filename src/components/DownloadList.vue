@@ -37,7 +37,6 @@ async function moveProject(event: KeyboardEvent, index: number) {
       <section v-if="selected" id="download-project-panel" class="download-detail" role="tabpanel" :aria-labelledby="`download-project-${selected.id}`" tabindex="0">
         <h3>{{ selected.name }}</h3>
         <MarkdownContent v-if="selected.description" class="download-description" :source="selected.description" lang="zh-CN" />
-        <ul class="download-files" :aria-label="t('announcements.downloadLinks')"><li v-for="(file, index) in selected.files" :key="`${index}:${file.url}`"><a :href="file.url" target="_blank" rel="noopener noreferrer">{{ file.label }}</a></li></ul>
       </section>
       <p v-else class="downloads-empty" role="status">{{ t('common.noDownloads') }}</p>
     </div>
@@ -54,10 +53,6 @@ async function moveProject(event: KeyboardEvent, index: number) {
 .download-detail { min-width: 0; min-height: 0; overflow: auto; overscroll-behavior: contain; padding: 2px 8px 12px 0; overflow-wrap: anywhere; }
 .download-detail h3 { margin: 0 0 18px; color: var(--ink); font-size: 28px; font-weight: 600; line-height: 1.4; }
 .download-description { margin-bottom: 22px; font-size: 15px; }
-.download-files { margin: 0; padding-left: 20px; }
-.download-files li { padding: 5px 0; color: var(--ink); }
-.download-files a { color: var(--blue); font-size: 16px; line-height: 1.6; text-underline-offset: 4px; }
-.download-files a:hover { text-decoration: underline; }
 .download-mobile-select { display: none; }
 .downloads-empty { grid-column: 1 / -1; margin: 8px 0; color: var(--ink); font-size: 15px; }
 @media (max-width: 640px) {
@@ -67,6 +62,5 @@ async function moveProject(event: KeyboardEvent, index: number) {
   .download-mobile-select select { width: 100%; min-width: 0; min-height: 44px; padding: 8px 10px; border: 1px solid var(--line); border-radius: 2px; background: var(--paper); color: var(--ink); font: inherit; font-size: 16px; }
   .download-detail { flex: 1; }
   .download-detail h3 { font-size: 24px; }
-  .download-files li { padding-block: 8px; }
 }
 </style>
