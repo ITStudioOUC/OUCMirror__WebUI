@@ -223,7 +223,7 @@ func main() {
 		defer cancel()
 		srv.Shutdown(stop)
 	}()
-	log.Printf("MirrorOUC API listening on %s", cfg.Listen)
+	log.Printf("MirrorITS API listening on %s", cfg.Listen)
 	if err = srv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
 		log.Fatal(err)
 	}

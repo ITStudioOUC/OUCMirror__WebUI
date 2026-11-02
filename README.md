@@ -1,6 +1,6 @@
-# MirrorOUC
+# MirrorITS
 
-爱特软件镜像源的前端与管理服务，由[中国海洋大学爱特工作室](https://www.itouc.cn/)制作。使用 Vue 3、TypeScript 和 Go，支持镜像展示、公告、使用帮助与管理后台，同步任务由 [tunasync](https://github.com/tuna/tunasync) 执行。
+爱特开源软件镜像站（MirrorITS）的前端与管理服务，由[中国海洋大学爱特工作室](https://www.itouc.cn/)开发部署。使用 Vue 3、TypeScript 和 Go，支持镜像展示、公告、使用帮助与管理后台，同步任务由 [tunasync](https://github.com/tuna/tunasync) 执行。
 
 ## 部署
 

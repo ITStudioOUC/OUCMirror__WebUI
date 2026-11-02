@@ -100,8 +100,8 @@ type Session struct {
 
 func initialSettings() Settings {
 	return Settings{
-		Name:        Localized{"zh-CN": "中国海洋大学软件镜像源", "en-US": "Ocean University of China Software Mirrors"},
-		Description: Localized{"zh-CN": "中国海洋大学软件镜像源（MirrorOUC）由中国海洋大学爱特工作室承建。", "en-US": "MirrorOUC is built by IT Studio, Ocean University of China."},
+		Name:        Localized{"zh-CN": "爱特开源软件镜像站", "en-US": "ITStudio Open Source Software Mirrors"},
+		Description: Localized{"zh-CN": "爱特开源软件镜像站（MirrorITS）由中国海洋大学爱特工作室开发部署。", "en-US": "MirrorITS is developed and hosted by ITStudio at Ocean University of China."},
 		LogoLight:   "/assets/mirrorOUC_dark.png", LogoDark: "/assets/mirrorOUC.png", Favicon: "/assets/ouc-seal.png", Avatar: "/assets/ouc-seal.png", Email: "contact@itstudio.club",
 		Address:      Localized{"zh-CN": "山东省青岛市中国海洋大学西海岸校区 · 信息南楼五八创新创业工坊", "en-US": "58 Innovation Workshop, Information South Building, West Coast Campus, Ocean University of China, Qingdao, Shandong"},
 		RelatedLinks: initialRelatedLinks(),

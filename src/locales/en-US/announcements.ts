@@ -22,8 +22,8 @@ export default {
   "downloadItem": "Download {name} {version}",
   "entries": {
     "preview": {
-      "title": "A first look at the MirrorOUC interface",
-      "body": "Welcome to the MirrorOUC homepage prototype. The mirror list and sync jobs use demo data. Try search, themes and language switching. The mirror server is not connected yet."
+      "title": "A first look at the MirrorITS interface",
+      "body": "Welcome to the MirrorITS homepage prototype. The mirror list and sync jobs use demo data. Try search, themes and language switching. The mirror server is not connected yet."
     },
     "help": {
       "title": "Finding mirror configuration help",

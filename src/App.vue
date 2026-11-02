@@ -64,7 +64,7 @@ watch(locale, (value) => {
   savePreference('mirrorouc.locale', value)
 }, { immediate: true })
 watch([locale, site], () => {
-  const siteTitle = site.value ? `MirrorOUC · ${content(site.value.name, locale.value)}` : t('common.pageTitle')
+  const siteTitle = site.value ? `${t('common.brand')} · ${content(site.value.name, locale.value)}` : t('common.pageTitle')
   const pageTitle = isHelpPage ? (help.name && !help.invalid ? t('mirrors.helpFor', { name: help.name }) : t('mirrors.helpTitle')) : isAnnouncementsPage ? t('announcements.title') : ''
   document.title = pageTitle ? `${pageTitle} · ${siteTitle}` : siteTitle
 }, { immediate: true })

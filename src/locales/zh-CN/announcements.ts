@@ -22,8 +22,8 @@ export default {
   "downloadItem": "下载 {name} {version}",
   "entries": {
     "preview": {
-      "title": "MirrorOUC 首页界面预览",
-      "body": "欢迎体验 MirrorOUC 首页原型。当前展示的镜像列表与同步任务为演示数据，可体验镜像搜索、主题切换和中英文界面。镜像服务器尚未接入。"
+      "title": "MirrorITS 首页界面预览",
+      "body": "欢迎体验 MirrorITS 首页原型。当前展示的镜像列表与同步任务为演示数据，可体验镜像搜索、主题切换和中英文界面。镜像服务器尚未接入。"
     },
     "help": {
       "title": "软件源配置帮助入口说明",

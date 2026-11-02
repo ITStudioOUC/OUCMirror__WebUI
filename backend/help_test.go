@@ -40,7 +40,7 @@ func TestPublishedHelpAndDeepLinks(t *testing.T) {
 	for _, name := range []string{"hidden", "empty", "missing", "bad%2Fname"} {
 		status(t, c.call("GET", "/api/v1/help/"+name, nil, false), 404)
 	}
-	const html = "<!doctype html><title>MirrorOUC help</title>"
+	const html = "<!doctype html><title>MirrorITS help</title>"
 	if err := os.WriteFile(filepath.Join(c.app.cfg.Static, "index.html"), []byte(html), 0600); err != nil {
 		t.Fatal(err)
 	}

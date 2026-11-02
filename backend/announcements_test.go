@@ -111,7 +111,7 @@ func TestAnnouncementPublishingLifecycle(t *testing.T) {
 
 func TestAnnouncementsDirectNavigation(t *testing.T) {
 	c := fixture(t)
-	if err := os.WriteFile(filepath.Join(c.app.cfg.Static, "index.html"), []byte("<!doctype html><title>MirrorOUC</title>"), 0600); err != nil {
+	if err := os.WriteFile(filepath.Join(c.app.cfg.Static, "index.html"), []byte("<!doctype html><title>MirrorITS</title>"), 0600); err != nil {
 		t.Fatal(err)
 	}
 	for _, path := range []string{"/announcements", "/announcements/"} {

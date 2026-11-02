@@ -93,7 +93,7 @@ function applyTheme() {
 function applyLocale() {
   i18n.global.locale.value = locale
   document.documentElement.lang = locale
-  document.title = `${path} · ${t('directory.title')} · MirrorOUC`
+  document.title = `${path} · ${t('directory.title')} · ${t('common.brand')}`
   for (const element of document.querySelectorAll<HTMLElement>('[data-i18n]')) element.textContent = t(element.dataset.i18n!)
   for (const [attribute, data] of [['aria-label', 'i18nAria'], ['placeholder', 'i18nPlaceholder']] as const) {
     for (const element of document.querySelectorAll<HTMLElement>(`[data-${data === 'i18nAria' ? 'i18n-aria' : 'i18n-placeholder'}]`)) element.setAttribute(attribute, t(element.dataset[data]!))
