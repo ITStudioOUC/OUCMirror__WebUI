@@ -49,6 +49,8 @@ go -C backend build -o ../.local/mirrorouc .
 
 镜像使用帮助位于 `/help/<源名>/`，在后台“镜像与任务”的“展示信息”中使用 Markdown 编辑。所有界面语言使用同一份中文帮助文章；未填写文章的镜像不显示帮助按钮。
 
+常用镜像的帮助原稿见 [docs/help/](docs/help/README.md)，可复制到后台发布；线上编辑的文章保存在数据库中，部署不会自动覆盖。
+
 帮助正文可插入交互式 Debian 配置块，`format` 使用 `list`（传统格式）或 `deb822`：
 
 ```mirror-config
