@@ -2,8 +2,8 @@
 import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import {
-  ArrowRight, ArrowUpRight, CircleHelp, Check,
-  ExternalLink, Menu, Monitor, Moon,
+  ArrowRight, CircleHelp, Check,
+  Menu, Monitor, Moon,
   Search, Sun, X,
 } from 'lucide-vue-next'
 import RollingText from './components/RollingText.vue'
@@ -92,37 +92,24 @@ function announcementDate(date: string) {
   const parts = Object.fromEntries(formatter.formatToParts(new Date(date)).map(part => [part.type, part.value]))
   return t('mirrors.datePatterns.announcement', { year: parts.year, month: parts.month, day: parts.day })
 }
-function nextLabel(mirror: Mirror) {
-  return ['syncing', 'failed', 'paused', 'unknown'].includes(mirror.status)
-    ? t(`mirrors.status.${mirror.status}`) : relativeTime(mirror.nextSync, true)
-}
 function resetSearch() { search.value = ''; searchInput.value?.focus() }
 
-type Modal = 'about' | 'downloads' | 'mirror'
-const dialog = ref<HTMLDialogElement>()
-const modal = ref<Modal | null>(null)
-const selectedMirror = ref<Mirror | null>(null)
-const modalTitle = computed(() => {
-  if (modal.value === 'mirror') return selectedMirror.value?.name || ''
-  const keys = { about: 'common.aboutTitle', downloads: 'announcements.downloadsTitle' }
-  return modal.value && modal.value in keys ? t(keys[modal.value as keyof typeof keys]) : ''
-})
-async function openModal(value: Modal, mirror?: Mirror) {
-  modal.value = value
-  selectedMirror.value = mirror || null
+const downloadDialog = ref<HTMLDialogElement>()
+const downloadsOpen = ref(false)
+async function openDownloads() {
+  downloadsOpen.value = true
   mobileOpen.value = false
   themeOpen.value = false
   await nextTick()
-  if (!dialog.value?.open) dialog.value?.showModal()
+  if (!downloadDialog.value?.open) downloadDialog.value?.showModal()
 }
-function closeModal() { dialog.value?.close() }
-function onDialogClose() { modal.value = null; selectedMirror.value = null }
-watch(modal, value => { document.body.classList.toggle('dialog-open', value !== null) })
+function closeDownloads() { downloadDialog.value?.close() }
+watch(downloadsOpen, value => { document.body.classList.toggle('dialog-open', value) })
 
 function onKeydown(event: KeyboardEvent) {
   if (event.key === 'Escape') { themeOpen.value = false; mobileOpen.value = false }
   const target = event.target as HTMLElement
-  if (!isAdminPage && !isAnnouncementsPage && !isHelpPage && !dialog.value?.open && ((event.key === 'k' && (event.ctrlKey || event.metaKey))
+  if (!isAdminPage && !isAnnouncementsPage && !isHelpPage && !downloadDialog.value?.open && ((event.key === 'k' && (event.ctrlKey || event.metaKey))
     || (event.key === '/' && !['INPUT', 'TEXTAREA', 'SELECT'].includes(target.tagName) && !target.isContentEditable))) {
     event.preventDefault()
     if (isStatusPage) statusPage.value?.focusSearch()
@@ -189,7 +176,7 @@ onBeforeUnmount(() => {
     <AdminPage v-if="isAdminPage" />
     <AnnouncementsPage v-else-if="isAnnouncementsPage" />
     <HelpPage v-else-if="isHelpPage" :name="help.name" :invalid="help.invalid" />
-    <StatusPage v-else-if="isStatusPage" ref="statusPage" :mirrors="mirrors" :now="now" :cycle="boardCycle" :show-next-sync="showNextSync" @mirror="openModal('mirror', $event)" />
+    <StatusPage v-else-if="isStatusPage" ref="statusPage" :mirrors="mirrors" :now="now" :cycle="boardCycle" :show-next-sync="showNextSync" />
     <div v-else class="main-grid">
       <section id="mirrors" class="mirror-section" tabindex="-1">
         <div class="mirror-controls">
@@ -228,11 +215,11 @@ onBeforeUnmount(() => {
             <time :datetime="item.date">{{ announcementDate(item.date) }}</time>
             <span class="news-title" lang="zh-CN">{{ item.title }}</span>
           </a>
-          <p v-if="!announcements.length" class="dialog-hint">{{ t('common.noAnnouncements') }}</p>
+          <p v-if="!announcements.length" class="sidebar-empty">{{ t('common.noAnnouncements') }}</p>
         </section>
 
         <section class="side-section downloads">
-          <div class="side-heading"><h2>{{ t('announcements.downloads') }}</h2><button class="download-menu-button" aria-haspopup="dialog" aria-controls="content-dialog" @click="openModal('downloads')">{{ t('announcements.downloadMenu') }}</button></div>
+          <div class="side-heading"><h2>{{ t('announcements.downloads') }}</h2><button class="download-menu-button" aria-haspopup="dialog" aria-controls="download-dialog" @click="openDownloads">{{ t('announcements.downloadMenu') }}</button></div>
         </section>
 
         <section v-if="site?.relatedLinks?.length" class="side-section useful-links">
@@ -284,12 +271,10 @@ onBeforeUnmount(() => {
     </div>
   </footer>
 
-  <dialog id="content-dialog" ref="dialog" class="content-dialog" :class="{ 'download-dialog': modal === 'downloads' }" aria-labelledby="dialog-title" @close="onDialogClose" @click="($event.target === $event.currentTarget) && closeModal()">
-    <div class="dialog-inner"><div class="dialog-heading"><h2 id="dialog-title">{{ modalTitle }}</h2><button class="icon-button" :aria-label="t('common.close')" autofocus @click="closeModal"><X :size="21" /></button></div>
-      <div class="dialog-content">
-        <template v-if="modal === 'mirror' && selectedMirror"><p class="dialog-lead">{{ description(selectedMirror) }}</p><div class="mirror-facts"><span>{{ t('mirrors.columns.status') }}</span><span>{{ t(`mirrors.status.${selectedMirror.status}`) }}</span><span>{{ t('mirrors.columns.updated') }}</span><span>{{ relativeTime(selectedMirror.lastSuccess) }}</span><span>{{ t('mirrors.columns.next') }}</span><span>{{ nextLabel(selectedMirror) }}</span></div><div class="dialog-actions"><a v-if="selectedMirror.help?.trim()" class="text-button" :href="helpUrl(selectedMirror.name)">{{ t('mirrors.helpTitle') }}<CircleHelp :size="18" /></a><a class="text-button" :href="selectedMirror.browseUrl">{{ t('common.openDirectory') }}<ArrowRight :size="15" /></a><a v-if="selectedMirror.website" :href="selectedMirror.website" target="_blank" rel="noopener noreferrer" class="text-button">{{ t('mirrors.official') }}<ExternalLink :size="14" /></a></div></template>
-        <DownloadList v-else-if="modal === 'downloads'" :items="distributions" />
-        <template v-else-if="modal === 'about'"><img class="about-seal" :src="site?.avatar || '/assets/ouc-seal.png'" alt="" width="80" height="80" /><p class="article-body">{{ t('common.aboutBody') }}</p><div class="about-links"><a href="https://www.itouc.cn/" target="_blank" rel="noopener noreferrer">{{ t('common.studio') }}<ArrowUpRight :size="15" /></a><a href="https://github.com/tuna/tunasync" target="_blank" rel="noopener noreferrer">{{ t('common.source') }} · tunasync<ArrowUpRight :size="15" /></a></div></template>
+  <dialog id="download-dialog" ref="downloadDialog" class="download-dialog" aria-labelledby="download-dialog-title" @close="downloadsOpen = false" @click="($event.target === $event.currentTarget) && closeDownloads()">
+    <div class="download-dialog-inner"><div class="download-dialog-heading"><h2 id="download-dialog-title">{{ t('announcements.downloadsTitle') }}</h2><button class="icon-button" :aria-label="t('common.close')" autofocus @click="closeDownloads"><X :size="21" /></button></div>
+      <div class="download-dialog-content">
+        <DownloadList v-if="downloadsOpen" :items="distributions" />
       </div>
     </div>
   </dialog>

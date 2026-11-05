@@ -10,7 +10,6 @@ import MonitoringChart from './MonitoringChart.vue'
 import RollingText from './RollingText.vue'
 
 const props = defineProps<{ mirrors: Mirror[]; now: number; cycle: number; showNextSync: boolean }>()
-const emit = defineEmits<{ mirror: [mirror: Mirror] }>()
 const { t, n } = useI18n({ useScope: 'global' })
 const { mirrorSize, relativeTime, fullTime } = useMirrorFormats(toRef(props, 'now'))
 const range = ref<MonitoringRange>(24)
@@ -127,7 +126,7 @@ onBeforeUnmount(() => { sequence++; controller?.abort(); speedController?.abort(
       <table class="sync-table" role="table" aria-labelledby="monitor-sync">
         <thead role="rowgroup"><tr role="row"><th v-for="column in ['name', 'update', 'upstream', 'status', 'size', 'speed']" :key="column" role="columnheader" scope="col" :data-column="column" :title="column === 'speed' ? t('monitor.speedDescription') : undefined">{{ t(`monitor.columns.${column}`) }}</th></tr></thead>
         <tbody role="rowgroup"><tr v-for="mirror in filteredMirrors" :key="mirror.name" role="row" :data-status="mirror.status">
-          <td role="cell" data-column="name"><button class="sync-name" :aria-label="t('mirrors.browse', { name: mirror.name })" @click="emit('mirror', mirror)">{{ mirror.name }}</button></td>
+          <td role="cell" data-column="name"><span class="sync-name">{{ mirror.name }}</span></td>
           <td role="cell" data-column="update" :title="fullTime(syncInfo(mirror, showNextSync).timestamp)"><div class="sync-update"><RollingText :value="syncLabel(mirror, showNextSync)" :cycle="cycle" :reserve="[syncLabel(mirror, false), syncLabel(mirror, true)]" :shuffle="false" /><RollingText :value="syncTime(mirror, showNextSync)" :cycle="cycle" :reserve="[syncTime(mirror, false), syncTime(mirror, true)]" :shuffle="false" /></div></td>
           <td role="cell" data-column="upstream"><span class="sync-mobile-label" aria-hidden="true">{{ t('monitor.columns.upstream') }}</span><a :href="mirror.upstream" target="_blank" rel="noopener noreferrer">{{ mirror.upstream }}</a></td>
           <td role="cell" data-column="status">{{ t(`mirrors.status.${mirror.status}`) }}</td>
@@ -175,8 +174,8 @@ onBeforeUnmount(() => { sequence++; controller?.abort(); speedController?.abort(
 .sync-table :is(th, td):last-child { padding-right: 0; }
 .sync-table tr[data-status='syncing'] { background: var(--blue-soft); }
 .sync-table tr[data-status='failed'] { background: var(--red-soft); }
-.sync-name { padding: 0; min-height: 30px; color: var(--blue); font: 600 13px ui-monospace, Consolas, monospace; text-align: left; overflow-wrap: anywhere; }
-.sync-name:hover, .sync-table a:hover { color: var(--blue); text-decoration: underline; text-underline-offset: 3px; }
+.sync-name { display: inline-flex; align-items: center; min-height: 30px; color: var(--ink); font: 600 13px ui-monospace, Consolas, monospace; overflow-wrap: anywhere; }
+.sync-table a:hover { color: var(--blue); text-decoration: underline; text-underline-offset: 3px; }
 .sync-update { display: grid; grid-template-columns: max-content minmax(0, 1fr); align-items: center; gap: 12px; font-size: 12px; font-variant-numeric: tabular-nums; }
 .sync-table td[data-column='upstream'] { font-size: 12px; }
 .sync-table td[data-column='size'] { font-variant-numeric: tabular-nums; white-space: nowrap; }
