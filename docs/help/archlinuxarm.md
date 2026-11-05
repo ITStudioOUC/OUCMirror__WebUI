@@ -10,8 +10,8 @@ sudo cp /etc/pacman.d/mirrorlist /etc/pacman.d/mirrorlist.bak
 
 将下面一行放到 `/etc/pacman.d/mirrorlist` 的最前面：
 
-```text
-Server = https://mirrors.app.itstudio.club/mirrors/archlinuxarm/$arch/$repo
+```mirror-config
+{"type":"archlinuxarm"}
 ```
 
 保留 `$arch` 和 `$repo` 原样。这里没有 Arch Linux 官方仓库路径中的 `os/`。

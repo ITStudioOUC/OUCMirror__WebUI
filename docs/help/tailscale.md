@@ -1,50 +1,27 @@
 本站提供 Tailscale 稳定通道的 Debian、Ubuntu APT 软件包，分别位于 `tailscale/debian/` 和 `tailscale/ubuntu/`。镜像地址中不含上游的 `stable/` 路径；本站未提供对应的 RPM 仓库。
 
-先运行 `cat /etc/os-release` 确认发行版和代号。下面两套配置择一使用，不能在 Ubuntu 上使用 Debian 仓库，反之亦然。
+## 确认系统
 
-## 准备工具
+运行 `cat /etc/os-release` 确认发行版和代号。不能在 Ubuntu 上选择 Debian 仓库，反之亦然。
+
+安装工具：
 
 ```sh
 sudo apt update
 sudo apt install ca-certificates curl
-sudo install -d -m 0755 /usr/share/keyrings
 ```
 
-已有 `/etc/apt/sources.list.d/tailscale.list` 或同名密钥环时，先备份并检查，避免重复配置。密钥从 Tailscale 官方站点获取。
+已有 `/etc/apt/sources.list.d/tailscale.list`、`tailscale.sources` 或同名密钥环时，先备份并检查，避免重复配置。
 
-## Debian 示例
+## 生成配置
 
-以 Debian 12（`bookworm`）为例，下载官方公钥：
+选择当前系统版本。第一段命令从 Tailscale 官方获取对应公钥，第二段是需要保存的源文件内容，两者会一起随版本变化。传统格式和 DEB822 选择一种即可。
 
-```sh
-curl -fsSL https://pkgs.tailscale.com/stable/debian/bookworm.noarmor.gpg | sudo tee /usr/share/keyrings/tailscale-archive-keyring.gpg >/dev/null
-sudo chmod 0644 /usr/share/keyrings/tailscale-archive-keyring.gpg
+```mirror-config
+{"type":"tailscale"}
 ```
 
-将 `/etc/apt/sources.list.d/tailscale.list` 设置为：
-
-```text
-deb [signed-by=/usr/share/keyrings/tailscale-archive-keyring.gpg] https://mirrors.app.itstudio.club/mirrors/tailscale/debian bookworm main
-```
-
-Debian 13 使用 `trixie`，同时替换官方密钥下载地址和源配置中的代号。其他版本请先确认 [Debian 目录](/mirrors/tailscale/debian/dists/)中存在对应套件。
-
-## Ubuntu 示例
-
-以 Ubuntu 24.04 LTS（`noble`）为例：
-
-```sh
-curl -fsSL https://pkgs.tailscale.com/stable/ubuntu/noble.noarmor.gpg | sudo tee /usr/share/keyrings/tailscale-archive-keyring.gpg >/dev/null
-sudo chmod 0644 /usr/share/keyrings/tailscale-archive-keyring.gpg
-```
-
-将 `/etc/apt/sources.list.d/tailscale.list` 设置为：
-
-```text
-deb [signed-by=/usr/share/keyrings/tailscale-archive-keyring.gpg] https://mirrors.app.itstudio.club/mirrors/tailscale/ubuntu noble main
-```
-
-其他 Ubuntu 版本需同时修改密钥地址和套件代号，并确认 [Ubuntu 目录](/mirrors/tailscale/ubuntu/dists/)中已提供该套件。
+未列出的版本请先检查 [Debian 目录](/mirrors/tailscale/debian/dists/)或 [Ubuntu 目录](/mirrors/tailscale/ubuntu/dists/)是否有对应套件，并参照官方说明配置。
 
 ## 安装和登录
 

@@ -23,3 +23,19 @@
 | [ubuntu.md](ubuntu.md) | Ubuntu 软件仓库 |
 
 文章参考 TUNA 帮助和各项目官方文档编写，原始资料链接见各篇末尾。目录、版本和同步范围以本站实际提供的内容为准。
+
+## 交互式配置
+
+后台可通过“插入配置生成器”添加控件，也可以直接在 Markdown 中插入：
+
+```mirror-config
+{"type":"ubuntu"}
+```
+
+目前注册的类型为 `debian`、`ubuntu`、`debian-security`、`archlinux`、`archlinuxarm`、`archlinuxcn`、`anaconda`、`kubernetes`、`tailscale`、`proxmox`、`openwrt`、`elrepo`。
+
+不指定 `format` 时，支持多格式的控件会显示格式选择。指定格式可固定展示，例如 `{"type":"ubuntu","format":"deb822","options":{"release":"noble"}}`。默认选项只接受对应控件已定义的值，不支持脚本或任意模板。
+
+后台保存文章与控件标记；版本列表和默认版本在“配置生成器”中维护，保存后帮助页会自动读取，无需重新编译。`debian-security` 共用 Debian 中的稳定版选项。移除版本前，需检查文章中是否通过 `options.release` 固定引用了它；失效的配置标记会显示为普通代码供作者修正。
+
+前端的 `src/mirror-config.ts` 注册生成规则，`MirrorConfig.vue` 和 `ConfigCode.vue` 共用布局和复制逻辑。新增软件源或更改包管理器规则仍需修改代码；`backend/generator-defaults.json` 仅用于首次初始化版本目录。

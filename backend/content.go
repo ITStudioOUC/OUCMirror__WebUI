@@ -77,7 +77,7 @@ func strict(raw []byte, value any) bool {
 }
 func (a *App) listRecords(w http.ResponseWriter, r *http.Request) {
 	kind := r.PathValue("kind")
-	if kind != "announcements" && kind != "mirrors" && kind != "settings" {
+	if kind != "announcements" && kind != "mirrors" && kind != "settings" && kind != "generators" {
 		fail(w, 404, "NOT_FOUND")
 		return
 	}
@@ -93,7 +93,7 @@ func (a *App) listRecords(w http.ResponseWriter, r *http.Request) {
 }
 func (a *App) putRecord(w http.ResponseWriter, r *http.Request) {
 	kind, id := r.PathValue("kind"), r.PathValue("id")
-	if !validName(id) || (kind != "announcements" && kind != "mirrors" && kind != "settings") {
+	if !validName(id) || (kind != "announcements" && kind != "mirrors" && kind != "settings" && kind != "generators") {
 		fail(w, 400, "INVALID_INPUT")
 		return
 	}
@@ -110,6 +110,13 @@ func (a *App) putRecord(w http.ResponseWriter, r *http.Request) {
 	}
 	var value any
 	switch kind {
+	case "generators":
+		var data GeneratorVersions
+		if !strict(body.Data, &data) || !validGeneratorVersions(id, data) {
+			fail(w, 400, "INVALID_INPUT")
+			return
+		}
+		value = data
 	case "announcements":
 		var d Announcement
 		if !strict(body.Data, &d) || strings.TrimSpace(d.Title) == "" || len(d.Title) > 300 || len(d.Body) > 250000 || (d.Published && strings.TrimSpace(d.Body) == "") {

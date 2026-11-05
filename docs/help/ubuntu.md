@@ -14,38 +14,19 @@ dpkg --print-architecture
 
 切换前检查 [noble 索引目录](/mirrors/ubuntu/dists/noble/)是否有 `InRelease` 或 `Release`。如果索引尚未同步完成，请继续使用官方源，稍后再切换。
 
-## Ubuntu 24.04 及之后：DEB822 格式
+## 生成软件源配置
 
-先备份 `/etc/apt/sources.list.d/ubuntu.sources`，再将其中的 Ubuntu 仓库配置替换为：
+先备份系统现有的软件源配置。Ubuntu 24.04 及之后通常使用 `/etc/apt/sources.list.d/ubuntu.sources`，Ubuntu 22.04 通常使用 `/etc/apt/sources.list`。
 
-```text
-Types: deb
-URIs: https://mirrors.app.itstudio.club/mirrors/ubuntu/
-Suites: noble noble-updates noble-backports
-Components: main restricted universe multiverse
-Signed-By: /usr/share/keyrings/ubuntu-archive-keyring.gpg
+在下面选择当前系统的版本和配置格式，将生成的内容替换到对应文件中。配置中的域名随当前访问的镜像站地址变化，右上角按钮可复制完整配置。
 
-Types: deb
-URIs: http://security.ubuntu.com/ubuntu/
-Suites: noble-security
-Components: main restricted universe multiverse
-Signed-By: /usr/share/keyrings/ubuntu-archive-keyring.gpg
+```mirror-config
+{"type":"ubuntu"}
 ```
 
-安全更新保留官方源，以减少镜像同步延迟的影响。不要同时保留另一份相同仓库配置。
+安全更新默认保留官方源，以减少镜像同步延迟的影响。`proposed` 默认关闭，普通使用无需开启。源码开关控制是否获取源码包索引。
 
-## Ubuntu 22.04：传统格式
-
-备份 `/etc/apt/sources.list` 后，将 Ubuntu 条目替换为：
-
-```text
-deb https://mirrors.app.itstudio.club/mirrors/ubuntu/ jammy main restricted universe multiverse
-deb https://mirrors.app.itstudio.club/mirrors/ubuntu/ jammy-updates main restricted universe multiverse
-deb https://mirrors.app.itstudio.club/mirrors/ubuntu/ jammy-backports main restricted universe multiverse
-deb http://security.ubuntu.com/ubuntu/ jammy-security main restricted universe multiverse
-```
-
-保留其他独立软件源的配置。需要源码包时，可以在传统格式中增加对应 `deb-src` 行，或将 DEB822 的 `Types` 改为 `deb deb-src`。
+保留其他独立软件源的配置。传统格式和 DEB822 格式选择一种即可，不要重复启用相同的 Ubuntu 仓库。选择 HTTP 或 HTTPS 时，请确认当前镜像站入口支持对应协议。
 
 ## 更新索引
 

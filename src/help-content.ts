@@ -1,10 +1,11 @@
 import { marked, type Token, type TokensList } from 'marked'
-import type { DebianFormat } from './debian-sources'
+import { parseMirrorConfig, type MirrorConfig } from './mirror-config.ts'
+import { defaultGeneratorCatalog, type GeneratorCatalog } from './generator-catalog.ts'
 
-export type HelpBlock = { kind: 'markdown'; tokens: TokensList } | { kind: 'debian'; format: DebianFormat }
+export type HelpBlock = { kind: 'markdown'; tokens: TokensList } | { kind: 'config'; config: MirrorConfig }
 
 // Only an allowlisted data block can create a widget; Markdown never executes scripts.
-export function helpBlocks(source: string): HelpBlock[] {
+export function helpBlocks(source: string, catalog: GeneratorCatalog = defaultGeneratorCatalog): HelpBlock[] {
   const document = marked.lexer(source)
   const blocks: HelpBlock[] = []
   let pending: Token[] = []
@@ -13,14 +14,13 @@ export function helpBlocks(source: string): HelpBlock[] {
     pending = []
   }
   for (const token of document) {
-    let format: DebianFormat | undefined
+    let config: MirrorConfig | null = null
     if (token.type === 'code' && token.lang === 'mirror-config' && token.text.length <= 2048) {
       try {
-        const value: unknown = JSON.parse(token.text)
-        if (value && typeof value === 'object' && !Array.isArray(value) && Object.keys(value).every(key => key === 'type' || key === 'format') && 'type' in value && value.type === 'debian' && 'format' in value && (value.format === 'list' || value.format === 'deb822')) format = value.format
+        config = parseMirrorConfig(JSON.parse(token.text), catalog)
       } catch { /* Invalid blocks remain visible as ordinary code for the author to correct. */ }
     }
-    if (format) { flush(); blocks.push({ kind: 'debian', format }) }
+    if (config) { flush(); blocks.push({ kind: 'config', config }) }
     else pending.push(token)
   }
   flush()

@@ -1,0 +1,46 @@
+{
+  "debian": {
+    "defaultRelease": "trixie",
+    "releases": [
+      { "id": "trixie", "label": "Debian 13 (trixie)", "stable": true, "firmware": true, "backports": true },
+      { "id": "bookworm", "label": "Debian 12 (bookworm)", "stable": true, "firmware": true, "backports": false },
+      { "id": "bullseye", "label": "Debian 11 (bullseye)", "stable": true, "firmware": false, "backports": false },
+      { "id": "testing", "label": "testing", "stable": false, "firmware": true, "backports": false },
+      { "id": "sid", "label": "sid", "stable": false, "firmware": true, "backports": false }
+    ]
+  },
+  "ubuntu": {
+    "defaultRelease": "noble",
+    "releases": [
+      { "id": "resolute", "label": "Ubuntu 26.04 LTS (resolute)" },
+      { "id": "noble", "label": "Ubuntu 24.04 LTS (noble)" },
+      { "id": "jammy", "label": "Ubuntu 22.04 LTS (jammy)" }
+    ]
+  },
+  "kubernetes": {
+    "defaultRelease": "v1.35",
+    "releases": [
+      { "id": "v1.37", "label": "v1.37" },
+      { "id": "v1.36", "label": "v1.36" },
+      { "id": "v1.35", "label": "v1.35" },
+      { "id": "v1.34", "label": "v1.34" }
+    ]
+  },
+  "tailscale": {
+    "defaultRelease": "debian/bookworm",
+    "releases": [
+      { "id": "debian/trixie", "label": "Debian 13 (trixie)" },
+      { "id": "debian/bookworm", "label": "Debian 12 (bookworm)" },
+      { "id": "ubuntu/resolute", "label": "Ubuntu 26.04 LTS (resolute)" },
+      { "id": "ubuntu/noble", "label": "Ubuntu 24.04 LTS (noble)" },
+      { "id": "ubuntu/jammy", "label": "Ubuntu 22.04 LTS (jammy)" }
+    ]
+  },
+  "proxmox": {
+    "defaultRelease": "trixie",
+    "releases": [
+      { "id": "trixie", "label": "Proxmox VE 9 / Debian 13 (trixie)", "keyring": "/usr/share/keyrings/proxmox-archive-keyring.gpg" },
+      { "id": "bookworm", "label": "Proxmox VE 8 / Debian 12 (bookworm)", "keyring": "/etc/apt/trusted.gpg.d/proxmox-release-bookworm.gpg" }
+    ]
+  }
+}

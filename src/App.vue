@@ -17,12 +17,14 @@ import { content } from './api'
 import { announcementUrl } from './announcements'
 import { helpRoute, helpUrl } from './help'
 import { usePublicData } from './usePublicData'
+import { provideGeneratorCatalog } from './useGeneratorCatalog'
 import { useMirrorFormats } from './useMirrorFormats'
 import { type Mirror } from './data'
 import { datetimeFormats, readPreference, savePreference, type Locale } from './locales'
 
 const { t, locale } = useI18n()
 const isAdminPage = window.location.pathname.startsWith('/admin')
+provideGeneratorCatalog(isAdminPage || window.location.pathname.startsWith('/help'))
 const { site, mirrors, announcements: articleRecords, source, loading } = usePublicData()
 const announcements = computed(() => articleRecords.value.map(row => ({ id: row.id, ...row.data })))
 const distributions = computed(() => site.value?.downloads || [])

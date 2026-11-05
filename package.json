@@ -14,6 +14,7 @@
     "check:monitoring": "node scripts/check-monitoring.ts",
     "check:help": "node scripts/check-help.ts",
     "check:debian": "node scripts/check-debian-sources.ts",
+    "check:generators": "node scripts/check-mirror-config.ts",
     "check:directory": "node scripts/check-directory.ts",
     "check:errors": "node scripts/check-errors.ts"
   },

@@ -6,22 +6,12 @@
 
 OpenWrt 25.12 起使用 APK；24.10 及更早版本使用 OPKG。第三方固件可能更改包管理器或仓库，应以实际系统为准。下面的命令在路由器的 root 会话中执行。
 
-## APK：OpenWrt 25.12 及之后
+## 生成换源命令
 
-备份并替换官方仓库域名：
+根据当前系统选择 APK 或 OPKG。下面的命令先备份配置，再替换仓库地址并刷新索引。
 
-```sh
-cp /etc/apk/repositories.d/distfeeds.list /etc/apk/repositories.d/distfeeds.list.bak
-sed -i 's|https\?://downloads.openwrt.org|https://mirrors.app.itstudio.club/mirrors/openwrt|g' /etc/apk/repositories.d/distfeeds.list
-apk update
-```
-
-## OPKG：OpenWrt 24.10 及之前
-
-```sh
-cp /etc/opkg/distfeeds.conf /etc/opkg/distfeeds.conf.bak
-sed -i 's|https\?://downloads.openwrt.org|https://mirrors.app.itstudio.club/mirrors/openwrt|g' /etc/opkg/distfeeds.conf
-opkg update
+```mirror-config
+{"type":"openwrt"}
 ```
 
 两种方式仅替换官方地址的前缀，保留原来的版本、target、subtarget 和软件包架构路径。自定义仓库保持原样。不要复制其他路由器的整份源配置，否则可能安装不兼容的软件包。

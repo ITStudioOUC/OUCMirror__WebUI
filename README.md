@@ -51,11 +51,25 @@ go -C backend build -o ../.local/mirrorouc .
 
 常用镜像的帮助原稿见 [docs/help/](docs/help/README.md)，可复制到后台发布；线上编辑的文章保存在数据库中，部署不会自动覆盖。
 
-帮助正文可插入交互式 Debian 配置块，`format` 使用 `list`（传统格式）或 `deb822`：
+帮助正文可插入交互式配置块，例如 Ubuntu：
+
+```mirror-config
+{"type":"ubuntu"}
+```
+
+后台的“插入配置生成器”可直接选择软件源并插入对应标记。支持 Debian、Ubuntu、Debian Security、Arch 系列、Conda、Kubernetes、Tailscale、Proxmox VE、OpenWrt 和 ELRepo；控件按软件源提供版本、格式、频道等选项。
+
+可用 `format` 固定配置格式，`options` 设置默认选项。已有 Debian 标记保持兼容：
 
 ```mirror-config
 {"type":"debian","format":"list"}
 ```
+
+新增软件源的控件规则在 `src/mirror-config.ts` 中注册，共用界面、复制和 Markdown 解析；APT 格式生成逻辑位于 `src/apt-sources.ts`。
+
+已有生成器的版本在后台“配置生成器”中维护，支持添加、排序、移除和设置默认版本。Ubuntu 等发行新版本时，填写官方代号与显示名称即可，无需修改代码或重新部署；Debian 的更新组件、Proxmox 的密钥环路径也在此设置。请先确认镜像已同步对应版本，生成器设置不会创建同步任务。
+
+版本目录保存在数据库中，由 `/api/v1/generators` 提供给帮助页。`backend/generator-defaults.json` 只用于首次初始化，升级不会覆盖后台保存的选项。
 
 镜像目录与下载由已有的 Web 服务器提供，路径为 `/mirrors/<源名>/`。自定义目录页的 Fancyindex 模板随前端构建生成在 `dist/fancy-index/` 中。
 

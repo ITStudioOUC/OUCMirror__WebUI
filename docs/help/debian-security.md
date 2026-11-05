@@ -14,29 +14,15 @@
 
 目录存在不代表该版本仍处于官方安全支持期，请同时查阅 Debian 的安全支持和 LTS 公告。
 
-## DEB822 格式
+## 生成安全更新配置
 
-以 Debian 13 为例，备份 `/etc/apt/sources.list.d/debian.sources`，将其中安全更新段替换为：
+备份 `/etc/apt/sources.list` 或 `/etc/apt/sources.list.d/debian.sources`，在下面选择当前系统版本和格式，只替换原有的安全更新段。保留主仓库、updates 等其他配置。
 
-```text
-Types: deb
-URIs: https://mirrors.app.itstudio.club/mirrors/debian-security/
-Suites: trixie-security
-Components: main contrib non-free non-free-firmware
-Signed-By: /usr/share/keyrings/debian-archive-keyring.gpg
+```mirror-config
+{"type":"debian-security"}
 ```
 
-保留文件中 Debian 主仓库、updates 等其他段。Debian 12 将 `trixie-security` 改为 `bookworm-security`；Debian 11 使用 `bullseye-security`，并移除 `non-free-firmware` 组件。
-
-## 传统 sources.list 格式
-
-如果系统仍使用传统格式，备份 `/etc/apt/sources.list` 后，将原来的安全更新行改为：
-
-```text
-deb https://mirrors.app.itstudio.club/mirrors/debian-security/ trixie-security main contrib non-free non-free-firmware
-```
-
-按系统版本调整套件和组件。两种格式选择一种即可，不要重复添加相同的安全更新源。
+组件会按发行版调整：Debian 11 不加入 `non-free-firmware`。传统格式和 DEB822 选择一种即可，不要重复添加安全更新源。这里生成的内容会使用本站安全更新镜像；希望保留官方安全更新时，请使用 [Debian 帮助页](/help/debian/)中的完整配置生成器。
 
 ## 更新索引
 

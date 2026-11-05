@@ -91,6 +91,10 @@ func newApp(cfg Config) (*App, error) {
 		db.Close()
 		return nil, err
 	}
+	if err = a.seedGeneratorVersions(); err != nil {
+		db.Close()
+		return nil, err
+	}
 	return a, nil
 }
 func (a *App) handler() http.Handler {
@@ -105,6 +109,7 @@ func (a *App) handler() http.Handler {
 	mux.HandleFunc("GET /api/v1/public", a.public)
 	mux.HandleFunc("GET /api/v1/announcements", a.announcements)
 	mux.HandleFunc("GET /api/v1/help", a.helpIndex)
+	mux.HandleFunc("GET /api/v1/generators", a.generatorCatalog)
 	mux.HandleFunc("GET /api/v1/help/{name}", a.helpArticle)
 	mux.HandleFunc("GET /api/v1/monitoring", a.monitoring)
 	mux.HandleFunc("GET /api/v1/job-speeds", a.jobSpeeds)

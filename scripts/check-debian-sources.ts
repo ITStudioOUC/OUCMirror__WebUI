@@ -44,7 +44,7 @@ assert.throws(() => debianSources({ ...base, release: 'unknown' as DebianSourceO
 const fence = (data: string) => '```mirror-config\n' + data + '\n```\n'
 const source = '## 配置\n\n[Debian][official]\n\n' + fence('{"type":"debian","format":"list"}') + '\n## 新格式\n\n' + fence('{"type":"debian","format":"deb822"}') + '\n[official]: https://www.debian.org/\n'
 const blocks = helpBlocks(source)
-assert.deepEqual(blocks.filter(block => block.kind === 'debian'), [{ kind: 'debian', format: 'list' }, { kind: 'debian', format: 'deb822' }])
+assert.deepEqual(blocks.filter(block => block.kind === 'config'), [{ kind: 'config', config: { type: 'debian', format: 'list' } }, { kind: 'config', config: { type: 'debian', format: 'deb822' } }])
 assert.ok(blocks.filter(block => block.kind === 'markdown').map(block => marked.parser(block.tokens)).join('').includes('href="https://www.debian.org/"'), 'Reference-style Markdown links must survive widget insertion')
 for (const data of ['not JSON', '{"type":"shell","format":"list"}', '{"type":"debian","format":"other"}', '{"type":"debian","format":"list","script":"alert(1)"}', 'null']) {
   assert.ok(helpBlocks(fence(data)).every(block => block.kind === 'markdown'), 'Invalid or unsupported blocks must remain ordinary Markdown code')

@@ -8,6 +8,10 @@ import { helpUrl } from '../help'
 import MarkdownContent from './MarkdownContent.vue'
 import DownloadCatalogEditor from './DownloadCatalogEditor.vue'
 import MirrorHelpContent from './MirrorHelpContent.vue'
+import { mirrorConfigTypes, mirrorGenerators, type MirrorConfigType } from '../mirror-config'
+import GeneratorCatalogEditor from './GeneratorCatalogEditor.vue'
+import type { GeneratorVersions } from '../generator-catalog'
+import { useGeneratorCatalog } from '../useGeneratorCatalog'
 
 const { t, te, d, n } = useI18n({ useScope: 'global' })
 const session = ref<AdminSession | null>(null)
@@ -16,13 +20,15 @@ const busy = ref(false)
 const error = ref('')
 const notice = ref('')
 const tab = ref('overview')
-const tabs = ['overview', 'mirrors', 'announcements', 'downloads', 'config', 'settings', 'users', 'audit']
+const tabs = ['overview', 'mirrors', 'announcements', 'downloads', 'generators', 'config', 'settings', 'users', 'audit']
 const allowedTabs = computed(() => session.value?.role === 'admin' ? tabs : ['announcements', 'users'])
 const credentials = reactive({ username: '', password: '' })
 const overview = ref<Overview | null>(null)
 const articles = ref<ContentRecord<AnnouncementContent>[]>([])
 const metadata = ref<ContentRecord<MirrorMetadata>[]>([])
 const settings = ref<ContentRecord<SiteSettings> | null>(null)
+const generatorRecords = ref<ContentRecord<GeneratorVersions>[]>([])
+const { refresh: refreshGenerators } = useGeneratorCatalog()
 const downloadEditor = ref<InstanceType<typeof DownloadCatalogEditor>>()
 const users = ref<AdminUser[]>([])
 const audit = ref<AuditPage>({ items: [], page: 1, pageSize: 10, total: 0, totalPages: 1 })
@@ -35,6 +41,8 @@ const articlePublished = computed(() => articlesEditor.value?.data.published ?? 
 const sortedArticles = computed(() => [...articles.value].sort((a, b) => Number(b.data.pinned) - Number(a.data.pinned) || Date.parse(b.data.date) - Date.parse(a.data.date)))
 const articleDate = computed(() => articlesEditor.value?.data.date ? new Intl.DateTimeFormat('en-CA', { year: 'numeric', month: '2-digit', day: '2-digit', timeZone: 'Asia/Shanghai' }).format(new Date(articlesEditor.value.data.date)) : '')
 const mirrorEditor = ref<ContentRecord<MirrorMetadata> | null>(null)
+const mirrorHelpInput = ref<HTMLTextAreaElement>()
+const helpGenerator = ref<MirrorConfigType>('ubuntu')
 const publishedMirrorHelp = computed(() => metadata.value.some(row => row.id === mirrorEditor.value?.id && row.data.visible && row.data.help?.trim()))
 const editLocale = ref('zh-CN')
 const logs = ref<{ name: string; text: string } | null>(null)
@@ -85,6 +93,7 @@ async function loadTab(value: string) {
   if (value === 'overview' || value === 'mirrors') await loadOverview()
   if (value === 'mirrors') metadata.value = await api('/admin/records/mirrors')
   if (value === 'announcements') articles.value = await api('/admin/records/announcements')
+  if (value === 'generators') generatorRecords.value = await api('/admin/records/generators')
   if (value === 'settings' || value === 'downloads') settings.value = (await api<ContentRecord<SiteSettings>[]>('/admin/records/settings'))[0] || null
   if (value === 'config') { config.value = await api('/admin/config'); versions.value = await api('/admin/config/versions'); draft.value = null; selectedConfig.value = ''; mirrorConfig.value = null }
   if (value === 'users' && session.value?.role === 'admin') users.value = await api('/admin/users')
@@ -100,6 +109,11 @@ async function logout() { await api('/auth/logout', { method: 'POST' }); session
 async function saveRecord<T>(kind: string, value: ContentRecord<T>) {
   const result = await api<ContentRecord<T>>(`/admin/records/${kind}/${encodeURIComponent(value.id)}`, { method: 'PUT', body: jsonBody({ data: value.data, revision: value.revision }) })
   notice.value = t('admin.saved'); return result
+}
+async function saveGenerator(record: ContentRecord<GeneratorVersions>) {
+  const saved = await saveRecord('generators', record)
+  generatorRecords.value = generatorRecords.value.map(row => row.id === saved.id ? saved : row)
+  await refreshGenerators()
 }
 async function ask(message: string, action: () => Promise<void>) {
   confirmation.value = { message, action }
@@ -142,6 +156,19 @@ function deleteArticle(record: ContentRecord<AnnouncementContent>) {
 function editMirror(job: SyncJob) {
   mirrorEditor.value = clone(metadata.value.find(row => row.id === job.name) || { id: job.name, revision: 0, updatedAt: 0, data: { name: job.name, description: { 'zh-CN': '', 'en-US': '' }, help: '', category: 'os', visible: true, website: '' } })
   mirrorEditor.value.data.description ||= {}; mirrorEditor.value.data.help ||= ''
+  helpGenerator.value = mirrorConfigTypes.includes(job.name as MirrorConfigType) ? job.name as MirrorConfigType : 'ubuntu'
+}
+async function insertHelpGenerator() {
+  if (!mirrorEditor.value) return
+  const input = mirrorHelpInput.value
+  const body = mirrorEditor.value.data.help
+  const start = input?.selectionStart ?? body.length
+  const end = input?.selectionEnd ?? start
+  const block = '\n\n```mirror-config\n' + JSON.stringify({ type: helpGenerator.value }) + '\n```\n\n'
+  mirrorEditor.value.data.help = body.slice(0, start) + block + body.slice(end)
+  await nextTick()
+  input?.focus()
+  input?.setSelectionRange(start + block.length, start + block.length)
 }
 async function saveMirror() { if (!mirrorEditor.value) return; mirrorEditor.value = await saveRecord('mirrors', mirrorEditor.value); metadata.value = await api('/admin/records/mirrors') }
 async function saveDownloads() {
@@ -213,7 +240,8 @@ onBeforeUnmount(() => clearInterval(poll))
           <div class="admin-toolbar"><h3>{{ mirrorEditor.id }} · {{ t('admin.metadata') }}</h3><button type="button" @click="mirrorEditor = null">{{ t('admin.close') }}</button></div>
           <label>{{ t('admin.descriptionLanguage') }}<select v-model="editLocale"><option v-for="language in supportedLocales" :key="language" :value="language">{{ t('common.languageName', {}, { locale: language }) }}</option></select></label>
           <label>{{ t('admin.description') }}<textarea v-model="mirrorEditor.data.description[editLocale]" rows="2" /></label>
-          <label>{{ t('admin.helpChinese') }}<textarea v-model="mirrorEditor.data.help" lang="zh-CN" rows="14" /></label>
+          <label>{{ t('admin.helpChinese') }}<textarea ref="mirrorHelpInput" v-model="mirrorEditor.data.help" lang="zh-CN" rows="14" /></label>
+          <div class="help-generator-toolbar"><label>{{ t('admin.configGenerator') }}<select v-model="helpGenerator"><option v-for="type in mirrorConfigTypes" :key="type" :value="type">{{ t(mirrorGenerators[type].nameKey) }}</option></select></label><button type="button" @click="insertHelpGenerator">{{ t('admin.insertGenerator') }}</button></div>
           <details v-if="mirrorEditor.data.help.trim()" class="mirror-help-preview"><summary>{{ t('admin.preview') }}</summary><MirrorHelpContent :source="mirrorEditor.data.help" /></details>
           <a v-if="publishedMirrorHelp" class="admin-public-link" :href="helpUrl(mirrorEditor.id)" target="_blank" rel="noopener noreferrer">{{ t('admin.viewHelp') }}</a>
           <label>{{ t('admin.website') }}<input v-model="mirrorEditor.data.website" type="url" /></label>
@@ -240,6 +268,7 @@ onBeforeUnmount(() => clearInterval(poll))
         </form>
         <div class="admin-table-wrap articles-table"><table><thead><tr><th>{{ t('admin.articleTitle') }}</th><th>{{ t('admin.status') }}</th><th>{{ t('admin.date') }}</th><th>{{ t('admin.actions') }}</th></tr></thead><tbody><tr v-for="row in sortedArticles" :key="row.id"><td class="article-list-title"><span lang="zh-CN">{{ row.data.title }}</span><span v-if="row.data.pinned" class="article-pin">{{ t('admin.pinned') }}</span></td><td>{{ t(row.data.published ? 'admin.published' : 'admin.draft') }}</td><td><time :datetime="row.data.date">{{ d(new Date(row.data.date), 'article') }}</time></td><td><div class="row-actions"><button :disabled="busy" @click="editArticle(row)">{{ t('admin.edit') }}</button><a v-if="row.data.published" class="admin-public-link" :href="announcementUrl(row.id)" target="_blank" rel="noopener noreferrer">{{ t('admin.viewArticle') }}</a><button :disabled="busy" @click="deleteArticle(row)">{{ t('admin.remove') }}</button></div></td></tr></tbody></table><p v-if="!articles.length">{{ t('admin.empty') }}</p></div>
       </template>
+      <GeneratorCatalogEditor v-if="tab === 'generators'" :records="generatorRecords" :busy="busy" @save="record => run(() => saveGenerator(record))" />
       <form v-if="tab === 'downloads' && settings" class="admin-form download-admin-form" @submit.prevent="run(saveDownloads)"><DownloadCatalogEditor ref="downloadEditor" v-model="settings.data.downloads" :busy="busy" /><button type="submit" class="primary" :disabled="busy">{{ t('admin.saveDownloads') }}</button></form>
       <form v-if="tab === 'settings' && settings" class="admin-form" @submit.prevent="run(async () => { settings = await saveRecord('settings', settings!) })">
         <label>{{ t('admin.contentLanguage') }}<select v-model="editLocale"><option v-for="language in supportedLocales" :key="language" :value="language">{{ t('common.languageName', {}, { locale: language }) }}</option></select></label>
@@ -299,6 +328,9 @@ button:hover { border-color: var(--blue); color: var(--blue); } button:disabled 
 .admin-tabs button { flex-shrink: 0; border-color: transparent; background: transparent; } .admin-tabs [aria-current] { border-bottom: 2px solid var(--blue); color: var(--blue); border-radius: 0; font-weight: 700; }
 .admin-error, .admin-notice { padding: 12px 16px; border-left: 3px solid var(--blue); background: var(--panel); overflow-wrap: anywhere; } .admin-error { border-color: #d65252; }
 .admin-form { display: grid; gap: 18px; max-width: 1100px; } .admin-login { max-width: 420px; }
+.help-generator-toolbar { display: flex; align-items: flex-end; flex-wrap: wrap; gap: 12px; }
+.help-generator-toolbar label { flex: 1 1 180px; max-width: 320px; }
+.help-generator-toolbar button { min-height: 44px; }
 .download-admin-form { max-width: none; }
 label { display: flex; flex-direction: column; gap: 8px; min-width: 0; font-size: 14px; font-weight: 500; }
 input, textarea, select { width: 100%; min-width: 0; min-height: 40px; padding: 9px 11px; border: 1px solid var(--line); border-radius: 4px; background: var(--panel); color: var(--ink); font: inherit; }

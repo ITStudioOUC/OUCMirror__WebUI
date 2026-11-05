@@ -11,29 +11,17 @@ Proxmox VE 9 基于 Debian 13（`trixie`），Proxmox VE 8 基于 Debian 12（`b
 
 以下操作在节点的 root 终端中执行。操作前备份 `/etc/apt/sources.list` 及 `/etc/apt/sources.list.d/` 中将要修改的文件。
 
-## Proxmox VE 9：DEB822 格式
+## 生成仓库配置
 
-创建或编辑 `/etc/apt/sources.list.d/proxmox.sources`：
+选择当前 Proxmox VE 版本和源配置格式，将生成的内容保存到所标注的文件中。PVE 9 通常使用 DEB822，PVE 8 通常使用传统格式。
 
-```text
-Types: deb
-URIs: https://mirrors.app.itstudio.club/mirrors/proxmox/debian/pve
-Suites: trixie
-Components: pve-no-subscription
-Signed-By: /usr/share/keyrings/proxmox-archive-keyring.gpg
+```mirror-config
+{"type":"proxmox"}
 ```
 
-密钥环由 Proxmox 官方软件包提供；若文件缺失，请先按官方说明修复密钥环，不要移除 `Signed-By` 或关闭验证。
+Proxmox 官方安装的软件包负责提供签名密钥；PVE 9 使用 `/usr/share/keyrings/proxmox-archive-keyring.gpg`，PVE 8 的官方密钥文件为 `/etc/apt/trusted.gpg.d/proxmox-release-bookworm.gpg`。文件缺失时先按对应版本的官方说明修复，不要移除签名校验。传统格式继续使用系统已有的官方签名密钥配置。
 
-## Proxmox VE 8：传统格式
-
-创建或编辑 `/etc/apt/sources.list.d/pve-no-subscription.list`：
-
-```text
-deb https://mirrors.app.itstudio.club/mirrors/proxmox/debian/pve bookworm pve-no-subscription
-```
-
-继续使用系统已有的官方签名密钥配置。两种格式按当前版本选择其一，不要重复启用相同仓库。
+两种格式选择其一，不要重复启用相同仓库。
 
 ## 检查仓库并更新
 

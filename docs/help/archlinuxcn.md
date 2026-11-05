@@ -4,9 +4,8 @@ Arch Linux CN 是 Arch Linux 中文社区维护的非官方软件仓库，收录
 
 备份 `/etc/pacman.conf`，在文件末尾添加：
 
-```ini
-[archlinuxcn]
-Server = https://mirrors.app.itstudio.club/mirrors/archlinuxcn/$arch
+```mirror-config
+{"type":"archlinuxcn"}
 ```
 
 `$arch` 保持原样。本站提供的架构可在 [仓库目录](/mirrors/archlinuxcn/)中查看。已有 `[archlinuxcn]` 配置时，修改原来的 `Server`，不要重复添加仓库段。

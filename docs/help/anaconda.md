@@ -10,21 +10,15 @@ conda config --set show_channel_urls yes
 
 切换前确认所需频道的平台目录已有 `repodata.json`，例如 [conda-forge 的 linux-64 索引](/mirrors/anaconda/cloud/conda-forge/linux-64/)。索引尚未同步完成时，先保留原配置。
 
-## 使用 conda-forge
+## 生成频道配置
 
-将 `.condarc` 中相关配置改为以下内容。已有的 `channels` 应一并检查，避免意外混用不同频道的软件包：
+在下面选择 conda-forge、Bioconda 或 defaults，将生成的内容合并到 `.condarc`。已有的 `channels` 应一并检查，避免意外混用不同频道的软件包。
 
-```yaml
-channels:
-  - conda-forge
-show_channel_urls: true
-channel_priority: strict
-custom_channels:
-  conda-forge: https://mirrors.app.itstudio.club/mirrors/anaconda/cloud
-  bioconda: https://mirrors.app.itstudio.club/mirrors/anaconda/cloud
+```mirror-config
+{"type":"anaconda"}
 ```
 
-这里的 `custom_channels` 地址不包含频道名，Conda 会自动补上 `conda-forge` 或 `bioconda`。
+使用社区频道时，`custom_channels` 地址不包含频道名，Conda 会自动补上相应名称。Bioconda 配置会按 conda-forge、bioconda 的顺序启用频道。
 
 刷新索引，并在新环境中验证：
 
@@ -42,17 +36,7 @@ conda create -n bio-test --override-channels -c conda-forge -c bioconda samtools
 
 ## 使用 defaults
 
-如果项目需要 Anaconda 的 `defaults`，可改用下面这套配置。它是上一套配置的替代方案：
-
-```yaml
-channels:
-  - defaults
-show_channel_urls: true
-default_channels:
-  - https://mirrors.app.itstudio.club/mirrors/anaconda/pkgs/main
-  - https://mirrors.app.itstudio.club/mirrors/anaconda/pkgs/r
-  - https://mirrors.app.itstudio.club/mirrors/anaconda/pkgs/msys2
-```
+如果项目需要 Anaconda 的 `defaults`，在上方控件中切换到 defaults，使用生成的 `default_channels` 配置。它是社区频道配置的替代方案，不要将两套配置直接叠加。
 
 使用前请查阅 Anaconda 对相应仓库的使用条款。自定义环境文件中的完整 URL、`-c` 参数和其他配置文件可能覆盖 `.condarc`；可通过 `conda config --show-sources` 排查。
 

@@ -10,8 +10,8 @@ sudo cp /etc/pacman.d/mirrorlist /etc/pacman.d/mirrorlist.bak
 
 编辑 `/etc/pacman.d/mirrorlist`，将下面一行放在最前面：
 
-```text
-Server = https://mirrors.app.itstudio.club/mirrors/archlinux/$repo/os/$arch
+```mirror-config
+{"type":"archlinux"}
 ```
 
 `$repo` 和 `$arch` 是 pacman 使用的变量，请原样保留。`/etc/pacman.conf` 中相应仓库应继续通过 `Include = /etc/pacman.d/mirrorlist` 引用镜像列表。

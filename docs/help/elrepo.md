@@ -25,13 +25,11 @@ sudo cp /etc/yum.repos.d/elrepo.repo /etc/yum.repos.d/elrepo.repo.bak
 2. 启用对应的 `baseurl=`，将其中 `http://elrepo.org/linux` 或 `https://elrepo.org/linux` 替换为 `https://mirrors.app.itstudio.club/mirrors/elrepo`。
 3. 保留路径后面的系统版本、仓库名称及 `$basearch` 变量；保留官方配置中的签名检查和密钥地址。
 
-例如 EL9 的基础仓库地址应为：
+也可以使用下方命令完成备份、启用直接下载地址、替换地址及刷新缓存。命令保留仓库配置中的系统版本、架构和签名校验设置。
 
-```ini
-baseurl=https://mirrors.app.itstudio.club/mirrors/elrepo/elrepo/el9/$basearch/
+```mirror-config
+{"type":"elrepo"}
 ```
-
-这只是一行地址示例，不是完整的 `.repo` 文件。不要用它覆盖 `enabled`、`gpgcheck`、`gpgkey` 等其他设置。
 
 ## 刷新缓存
 
